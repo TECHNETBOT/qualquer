@@ -1,8 +1,9 @@
-const { default: makeWASocket, DisconnectReason, useMultiFileAuthState, downloadMediaMessage } = require('@whiskeysockets/baileys');
+const { default: makeWASocket, DisconnectReason, useMultiFileAuthState, downloadMediaMessage, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
 const { Boom } = require('@hapi/boom');
 const pino = require('pino');
 const qrcode = require('qrcode-terminal');
 const fs = require('fs');
+const path = require('path');
 
 // IMPORTAÇÕES LOCAIS
 const C = require('./src/config');
@@ -13,6 +14,7 @@ const Alerts = require('./src/alerts');
 const { gerarComprovanteDevolucao } = require('./src/gerador');
 const { lerTextoDeImagem } = require('./src/ocr'); 
 const { processarMensagemPonto, gerarRelatorioDia, gerarRelatorioCSV } = require('./src/ponto');
+const { compare430, formatForCopy } = require('./src/compare430');
 
 // CONFIGURAÇÃO DOS GRUPOS
 const ID_GRUPO_TESTE = '120363423496684075@g.us';
@@ -20,6 +22,11 @@ const ID_GRUPO_RELATORIO = '120363423496684075@g.us';
 const ID_GRUPO_ADESAO = '558496022125-1485433351@g.us';
 const ID_GRUPO_TECNICOS = '120363023249969562@g.us'; 
 const ID_GRUPO_CONTATOS = '120363422121095440@g.us'; 
+
+const DATA_DIR = path.join(__dirname, 'data');
+const WHATS_TXT_PATH = path.join(DATA_DIR, 'whats.txt');
+const WHATS_CSV_PATH = path.join(DATA_DIR, 'whats.csv');
+const IMPERIUM_XLSX_PATH = path.join(DATA_DIR, 'imperium.xlsx');
 
 // === CACHE E MEMÓRIA ===
 let CACHE_CONTRATOS = []; 
@@ -41,6 +48,8 @@ let alertaIntervalId = null;
 let cacheIntervalId = null; 
 let relatorioEnviadoHoje = false;
 let sock;
+let reconnectTimeout = null;
+let reconnectAttempts = 0;
 
 // ==================== FUNÇÕES DE CACHE ====================
 async function atualizarCache() {
@@ -141,19 +150,41 @@ async function exibirDadosContrato(chatId, encontrado, termoBusca, message) {
 }
 
 async function connectToWhatsApp() {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
   const { state, saveCreds } = await useMultiFileAuthState('auth_baileys');
+  const { version, isLatest } = await fetchLatestBaileysVersion();
+  console.log(`📦 Versão WhatsApp Web usada: ${version.join('.')} (latest: ${isLatest})`);
+
   sock = makeWASocket({
     auth: state, printQRInTerminal: false, logger: pino({ level: 'fatal' }),
-    browser: ['Bot Consulta', 'Chrome', '1.0.0'], markOnlineOnConnect: false
+    browser: ['Bot Consulta', 'Chrome', '1.0.0'], markOnlineOnConnect: false,
+    version
   });
 
   sock.ev.on('connection.update', async (update) => {
     const { connection, lastDisconnect, qr } = update;
-    if (qr) qrcode.generate(qr, { small: true });
+    if (qr) {
+      console.log('📱 QR Code recebido! Escaneie com o WhatsApp.');
+      qrcode.generate(qr, { small: true }, (qrCode) => console.log(qrCode));
+    }
     if (connection === 'close') {
+      const statusCode = (lastDisconnect?.error instanceof Boom) ? lastDisconnect.error.output.statusCode : 'desconhecido';
+      console.log(`🔌 Conexão fechada. Motivo: ${statusCode}`);
       const shouldReconnect = (lastDisconnect?.error instanceof Boom) ? lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut : true;
-      if (shouldReconnect) connectToWhatsApp();
+
+      if (shouldReconnect) {
+        reconnectAttempts += 1;
+        const retryDelayMs = Math.min(3000 * reconnectAttempts, 15000);
+        console.log(`🔄 Tentando reconectar em ${Math.round(retryDelayMs / 1000)}s...`);
+        if (reconnectTimeout) clearTimeout(reconnectTimeout);
+        reconnectTimeout = setTimeout(() => connectToWhatsApp(), retryDelayMs);
+      }
     } else if (connection === 'open') {
+      reconnectAttempts = 0;
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+        reconnectTimeout = null;
+      }
       console.log('--- BOT ATIVO (FINAL HYBRID VERSION) ---');
       await atualizarCache();
       console.log(`💾 Histórico Fora Rota carregado: ${CONTRATOS_USADOS.size} contratos já enviados.`);
@@ -208,6 +239,88 @@ async function connectToWhatsApp() {
       const nomeUsuario = m.key.participant ? m.pushName : null; 
       const isGrupo = chatId.endsWith('@g.us');
       const isGrupoAutorizado = Data.isGrupoAutorizado(chatId) || chatId === ID_GRUPO_TESTE;
+      const isImage = !!m.message?.imageMessage;
+      const isQuotedImage = !!m.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage;
+      const isDocument = !!m.message?.documentMessage;
+      const documentCaption = (m.message?.documentMessage?.caption || '').toLowerCase().trim();
+
+      const executarComparacao430 = async () => {
+          const hasWhats = fs.existsSync(WHATS_TXT_PATH) || fs.existsSync(WHATS_CSV_PATH);
+          const whatsPath = fs.existsSync(WHATS_TXT_PATH) ? WHATS_TXT_PATH : WHATS_CSV_PATH;
+          const hasImperium = fs.existsSync(IMPERIUM_XLSX_PATH);
+
+          if (!hasWhats || !hasImperium) {
+              const faltantes = [];
+              if (!hasWhats) faltantes.push('• Arquivo Whats (.txt ou .csv)');
+              if (!hasImperium) faltantes.push('• Arquivo Imperium (.xlsx)');
+
+              await sock.sendMessage(chatId, {
+                  text: `⚠️ Faltam arquivos para comparar:
+
+${faltantes.join('\n')}
+
+Envie os dois documentos (.txt/.csv e .xlsx).`
+              }, { quoted: m });
+              return;
+          }
+
+          try {
+              const resultado = compare430({
+                  whatsPath,
+                  imperiumXlsxPath: IMPERIUM_XLSX_PATH,
+                  timeZone: 'America/Sao_Paulo'
+              });
+
+              if (resultado.totalWhats430 === 0) {
+                  await sock.sendMessage(chatId, { text: 'ℹ️ Não encontrei mensagens com *430* no arquivo Whats informado.' }, { quoted: m });
+                  return;
+              }
+
+              const blocos = [];
+              blocos.push(`📊 Total de contratos 430 no Whats: *${resultado.totalWhats430}*`);
+
+              if (resultado.divergencias.length > 0) {
+                  blocos.push(`
+🚨 *DIVERGÊNCIAS*
+${formatForCopy(resultado.divergencias)}`);
+              } else {
+                  blocos.push('\n✅ Nenhuma divergência de técnico encontrada para os 430.');
+              }
+
+              if (resultado.naoEncontrados.length > 0) {
+                  blocos.push(`
+📌 *CONTRATOS 430 NÃO ENCONTRADOS NO XLSX (DESC + hoje)*
+${resultado.naoEncontrados.join('\n')}`);
+              }
+
+              const respostaFinal = blocos.join('\n');
+              const TAMANHO_MAX = 3500;
+              if (respostaFinal.length <= TAMANHO_MAX) {
+                  await sock.sendMessage(chatId, { text: respostaFinal }, { quoted: m });
+              } else {
+                  const partes = [];
+                  let atual = '';
+                  for (const linha of respostaFinal.split('\n')) {
+                      const tentativa = atual ? `${atual}\n${linha}` : linha;
+                      if (tentativa.length > TAMANHO_MAX) {
+                          if (atual) partes.push(atual);
+                          atual = linha;
+                      } else {
+                          atual = tentativa;
+                      }
+                  }
+                  if (atual) partes.push(atual);
+
+                  for (let i = 0; i < partes.length; i++) {
+                      const prefixo = i === 0 ? '' : `(continuação ${i + 1}/${partes.length})\n`;
+                      await sock.sendMessage(chatId, { text: `${prefixo}${partes[i]}` }, { quoted: m });
+                  }
+              }
+          } catch (err) {
+              console.error('Erro comparar430:', err);
+              await sock.sendMessage(chatId, { text: `❌ Erro ao comparar 430: ${err.message}` }, { quoted: m });
+          }
+      };
 
       // ==================== COMANDO !MENU ====================
       if (msgTexto === '!menu' || msgTexto === '!ajuda') {
@@ -230,6 +343,12 @@ async function connectToWhatsApp() {
 • !controlador - Relatório do dia
 • !planilha - CSV do ponto
 • !marcar - Marca TODOS (Cuidado!)
+• !comparar430 - Compara Whats x Imperium
+
+📎 *ARQUIVOS (documento)*
+• Envie .txt/.csv (nome livre, ex: relatorio_todas_mensagens_24_02_2026_a_24_02_2026.txt)
+• Envie .xlsx (nome livre)
+• Ao receber 1x .txt/.csv + 1x .xlsx, o bot compara automático
 
 🔍 *CONSULTA*
 • Digite "contato 12345", "cct 12345", "ctt 12345" ou "12345 ctt"
@@ -246,6 +365,56 @@ async function connectToWhatsApp() {
       if (msgTexto.startsWith('!addad ')) { await adicionarNaLista(chatId, Utils.normalizeDigits(msgTextoRaw.slice(7)), Data.listaAD, Data.salvarAD, 'ADESÃO', '!addad 5584...'); return; }
       if (msgTexto.startsWith('!unaddad ')) { await removerDaLista(chatId, Utils.normalizeDigits(msgTextoRaw.slice(9)), Data.listaAD, Data.salvarAD, 'ADESÃO'); return; }
       if (msgTexto === '!listaad') { await listarNumeros(chatId, Data.listaAD, 'ADESÃO'); return; }
+
+      // ==================== CAPTURA DE DOCUMENTOS (whats / imperium) ====================
+      if (isDocument) {
+          const originalName = (m.message?.documentMessage?.fileName || '').toLowerCase().trim();
+          const mimetype = (m.message?.documentMessage?.mimetype || '').toLowerCase();
+          const isTxtOrCsv = originalName.endsWith('.txt') || originalName.endsWith('.csv') || mimetype.includes('text/') || mimetype.includes('csv');
+          const isXlsx = originalName.endsWith('.xlsx') || mimetype.includes('spreadsheetml');
+
+          const legendaMarcaWhats = documentCaption === 'whats';
+          const legendaMarcaImperium = documentCaption === 'imperium';
+
+          if (isTxtOrCsv || isXlsx || legendaMarcaWhats || legendaMarcaImperium) {
+              const fileBuffer = await downloadMediaMessage(m, 'buffer', {}, {
+                  logger: pino({ level: 'silent' }),
+                  reuploadRequest: sock.updateMediaMessage
+              });
+
+              if (!fileBuffer) {
+                  await sock.sendMessage(chatId, { text: '❌ Não consegui baixar o documento.' }, { quoted: m });
+                  return;
+              }
+
+              let salvouAlgum = false;
+              if (isTxtOrCsv || legendaMarcaWhats) {
+                  const destino = originalName.endsWith('.csv') ? WHATS_CSV_PATH : WHATS_TXT_PATH;
+                  fs.writeFileSync(destino, fileBuffer);
+                  salvouAlgum = true;
+                  await sock.sendMessage(chatId, { text: `✅ Arquivo Whats salvo em: ${path.basename(destino)}` }, { quoted: m });
+              } else if (isXlsx || legendaMarcaImperium) {
+                  fs.writeFileSync(IMPERIUM_XLSX_PATH, fileBuffer);
+                  salvouAlgum = true;
+                  await sock.sendMessage(chatId, { text: '✅ Arquivo Imperium salvo em: imperium.xlsx' }, { quoted: m });
+              }
+
+              if (salvouAlgum) {
+                  const hasWhats = fs.existsSync(WHATS_TXT_PATH) || fs.existsSync(WHATS_CSV_PATH);
+                  const hasImperium = fs.existsSync(IMPERIUM_XLSX_PATH);
+                  if (hasWhats && hasImperium) {
+                      await sock.sendMessage(chatId, { text: '🤖 Arquivos detectados (.txt/.csv + .xlsx). Iniciando comparação 430...' }, { quoted: m });
+                      await executarComparacao430();
+                  }
+                  return;
+              }
+          }
+      }
+
+      if (msgTexto === '!comparar430') {
+          await executarComparacao430();
+          return;
+      }
 
       // ==================== [PRIORIDADE 0] VERIFICAÇÃO URA ====================
       if (esperaConfirmacaoURA.has(chatId)) {
