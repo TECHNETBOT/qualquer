@@ -1,0 +1,45 @@
+{
+  "1r0_l5QIlx8OaF1l19wZlkn9scNI8vZkoS4VH5jPVHjw|gid=0|bairro=aldeota": {
+    "usedContratos": [
+      "4807336",
+      "4807859",
+      "4829437",
+      "4869730",
+      "4893127",
+      "4899400"
+    ],
+    "updatedAt": "2026-01-31T20:06:31.358Z"
+  },
+  "1r0_l5QIlx8OaF1l19wZlkn9scNI8vZkoS4VH5jPVHjw|gid=0|bairro=meireles": {
+    "usedContratos": [
+      "4813751",
+      "4829240",
+      "4898471",
+      "6104120",
+      "8861297"
+    ],
+    "updatedAt": "2026-01-31T20:08:57.714Z"
+  },
+  "1r0_l5QIlx8OaF1l19wZlkn9scNI8vZkoS4VH5jPVHjw|gid=0|bairro=neopolis": {
+    "usedContratos": [
+      "1232690",
+      "1799445",
+      "2726794",
+      "2754020",
+      "2921929",
+      "2977800",
+      "3015034",
+      "3360270",
+      "3419470",
+      "3445527"
+    ],
+    "updatedAt": "2026-01-31T20:18:58.663Z"
+  },
+  "1r0_l5QIlx8OaF1l19wZlkn9scNI8vZkoS4VH5jPVHjw|gid=0|bairro=joaquim tavora": {
+    "usedContratos": [
+      "4793530",
+      "6124384"
+    ],
+    "updatedAt": "2026-02-02T19:45:21.837Z"
+  }
+}

@@ -1,0 +1,1083 @@
+{
+  "06-02-2026": {
+    "ARTHUR PADILHA DE CARVALHO": {
+      "nome": "ARTHUR PADILHA DE CARVALHO",
+      "inicio_exp": "10:28",
+      "inicio_almoco": "15:10",
+      "fim_almoco": "16:10",
+      "fim_exp": "19:06"
+    },
+    "DALTON SYMEY GODOI FONSECA": {
+      "nome": "DALTON SYMEY GODOI FONSECA",
+      "inicio_exp": "",
+      "inicio_almoco": "11:20",
+      "fim_almoco": "12:40",
+      "fim_exp": "17:27"
+    },
+    "GERCIANO GLEY PEREIRA MARQUES FILHO": {
+      "nome": "GERCIANO GLEY PEREIRA MARQUES FILHO",
+      "inicio_exp": "",
+      "inicio_almoco": "12:43",
+      "fim_almoco": "",
+      "fim_exp": "17:06"
+    },
+    "ANTONIA ELIZIENE DO NASCIMENTO": {
+      "nome": "ANTONIA ELIZIENE DO NASCIMENTO",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "15:02",
+      "fim_exp": "18:30"
+    },
+    "CLAYVERTON SOUTO DE OLIVEIRA": {
+      "nome": "CLAYVERTON SOUTO DE OLIVEIRA",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "15:03",
+      "fim_exp": "17:33"
+    },
+    "ANDERSON JUSSIER DA SILVA FERNANDES": {
+      "nome": "ANDERSON JUSSIER DA SILVA FERNANDES",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "15:25",
+      "fim_exp": "18:22"
+    },
+    "ROMUALDO SANTOS DE MELO": {
+      "nome": "ROMUALDO SANTOS DE MELO",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": "16:51"
+    },
+    "ADRIA LORENA BESERRA DE LIMA": {
+      "nome": "ADRIA LORENA BESERRA DE LIMA",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": "17:06"
+    },
+    "Darllany": {
+      "nome": "Darllany",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": "17:10"
+    },
+    "FELIPE MATEUS MEDEIROS DE LUCENA": {
+      "nome": "FELIPE MATEUS MEDEIROS DE LUCENA",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": "18:12"
+    },
+    "ANA KAROLINE XAVIER MONTEIRO": {
+      "nome": "ANA KAROLINE XAVIER MONTEIRO",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": "17:22"
+    },
+    "Fernanda Controle": {
+      "nome": "Fernanda Controle",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": "17:22"
+    },
+    "KAROLINE MONTEIRO": {
+      "nome": "KAROLINE MONTEIRO",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": "17:25"
+    },
+    "MARCELLE DIANNE ARAUJO MARTINS": {
+      "nome": "MARCELLE DIANNE ARAUJO MARTINS",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": "17:41"
+    },
+    "JEFFERSON FIRMINO DA SILVA": {
+      "nome": "JEFFERSON FIRMINO DA SILVA",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": "17:44"
+    },
+    "MATHEUS FREITAS DIONISIO CAMARA": {
+      "nome": "MATHEUS FREITAS DIONISIO CAMARA",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": "17:48"
+    },
+    "OYAMA EDUARDO FILGUEIRA AFONSO JUNIOR": {
+      "nome": "OYAMA EDUARDO FILGUEIRA AFONSO JUNIOR",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": "18:00"
+    }
+  },
+  "07-02-2026": {
+    "OYAMA EDUARDO FILGUEIRA AFONSO JUNIOR": {
+      "nome": "OYAMA EDUARDO FILGUEIRA AFONSO JUNIOR",
+      "inicio_exp": "07:36",
+      "inicio_almoco": "12:08",
+      "fim_almoco": "12:58",
+      "fim_exp": "17:18"
+    },
+    "ROMUALDO SANTOS DE MELO": {
+      "nome": "ROMUALDO SANTOS DE MELO",
+      "inicio_exp": "07:44",
+      "inicio_almoco": "12:10",
+      "fim_almoco": "13:10",
+      "fim_exp": "16:58"
+    },
+    "Darllany": {
+      "nome": "Darllany",
+      "inicio_exp": "07:51",
+      "inicio_almoco": "11:25",
+      "fim_almoco": "12:58",
+      "fim_exp": "18:01"
+    },
+    "ADRIA LORENA BESERRA DE LIMA": {
+      "nome": "ADRIA LORENA BESERRA DE LIMA",
+      "inicio_exp": "07:56",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": "13:12"
+    },
+    "KAROLINE MONTEIRO": {
+      "nome": "KAROLINE MONTEIRO",
+      "inicio_exp": "07:57",
+      "inicio_almoco": "12:09",
+      "fim_almoco": "13:00",
+      "fim_exp": "16:51"
+    },
+    "ANA KAROLINE XAVIER MONTEIRO": {
+      "nome": "ANA KAROLINE XAVIER MONTEIRO",
+      "inicio_exp": "07:57",
+      "inicio_almoco": "12:04",
+      "fim_almoco": "13:06",
+      "fim_exp": "17:19"
+    },
+    "JEFFERSON FIRMINO DA SILVA": {
+      "nome": "JEFFERSON FIRMINO DA SILVA",
+      "inicio_exp": "08:04",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": "13:11"
+    },
+    "MARCELLE DIANNE ARAUJO MARTINS": {
+      "nome": "MARCELLE DIANNE ARAUJO MARTINS",
+      "inicio_exp": "08:10",
+      "inicio_almoco": "12:06",
+      "fim_almoco": "12:59",
+      "fim_exp": "17:30"
+    },
+    "Fernanda Controle": {
+      "nome": "Fernanda Controle",
+      "inicio_exp": "08:12",
+      "inicio_almoco": "12:06",
+      "fim_almoco": "13:01",
+      "fim_exp": "17:20"
+    },
+    "FELIPE MATEUS MEDEIROS DE LUCENA": {
+      "nome": "FELIPE MATEUS MEDEIROS DE LUCENA",
+      "inicio_exp": "09:04",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": "15:31"
+    },
+    "KENIA KATIUCIA SANTOS DA SILVA": {
+      "nome": "KENIA KATIUCIA SANTOS DA SILVA",
+      "inicio_exp": "08:49",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": "13:05"
+    },
+    "ANTONIA ELIZIENE DO NASCIMENTO": {
+      "nome": "ANTONIA ELIZIENE DO NASCIMENTO",
+      "inicio_exp": "08:58",
+      "inicio_almoco": "12:11",
+      "fim_almoco": "13:00",
+      "fim_exp": ""
+    },
+    "CLAYVERTON SOUTO DE OLIVEIRA": {
+      "nome": "CLAYVERTON SOUTO DE OLIVEIRA",
+      "inicio_exp": "09:08",
+      "inicio_almoco": "12:40",
+      "fim_almoco": "14:28",
+      "fim_exp": "17:03"
+    },
+    "ARTHUR PADILHA DE CARVALHO": {
+      "nome": "ARTHUR PADILHA DE CARVALHO",
+      "inicio_exp": "10:29",
+      "inicio_almoco": "12:38",
+      "fim_almoco": "13:29",
+      "fim_exp": "18:36"
+    },
+    "DALTON SYMEY GODOI FONSECA": {
+      "nome": "DALTON SYMEY GODOI FONSECA",
+      "inicio_exp": "08:30",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": "13:10"
+    },
+    "GERCIANO GLEY PEREIRA MARQUES FILHO": {
+      "nome": "GERCIANO GLEY PEREIRA MARQUES FILHO",
+      "inicio_exp": "",
+      "inicio_almoco": "12:05",
+      "fim_almoco": "",
+      "fim_exp": "17:00"
+    }
+  },
+  "08-02-2026": {
+    "JEFFERSON FIRMINO DA SILVA": {
+      "nome": "JEFFERSON FIRMINO DA SILVA",
+      "inicio_exp": "07:40",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": "17:12"
+    }
+  },
+  "09-02-2026": {
+    "ROMUALDO SANTOS DE MELO": {
+      "nome": "ROMUALDO SANTOS DE MELO",
+      "inicio_exp": "07:26",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": "17:10"
+    },
+    "OYAMA EDUARDO FILGUEIRA AFONSO JUNIOR": {
+      "nome": "OYAMA EDUARDO FILGUEIRA AFONSO JUNIOR",
+      "inicio_exp": "07:45",
+      "inicio_almoco": "11:59",
+      "fim_almoco": "12:54",
+      "fim_exp": "18:23"
+    },
+    "Darllany": {
+      "nome": "Darllany",
+      "inicio_exp": "07:48",
+      "inicio_almoco": "11:16",
+      "fim_almoco": "13:31",
+      "fim_exp": "17:10"
+    },
+    "ADRIA LORENA BESERRA DE LIMA": {
+      "nome": "ADRIA LORENA BESERRA DE LIMA",
+      "inicio_exp": "07:51",
+      "inicio_almoco": "13:10",
+      "fim_almoco": "14:55",
+      "fim_exp": "17:06"
+    },
+    "Fernanda Controle": {
+      "nome": "Fernanda Controle",
+      "inicio_exp": "07:51",
+      "inicio_almoco": "12:04",
+      "fim_almoco": "14:04",
+      "fim_exp": "17:26"
+    },
+    "ANA KAROLINE XAVIER MONTEIRO": {
+      "nome": "ANA KAROLINE XAVIER MONTEIRO",
+      "inicio_exp": "07:51",
+      "inicio_almoco": "12:07",
+      "fim_almoco": "14:05",
+      "fim_exp": "17:21"
+    },
+    "MARCELLE DIANNE ARAUJO MARTINS": {
+      "nome": "MARCELLE DIANNE ARAUJO MARTINS",
+      "inicio_exp": "08:06",
+      "inicio_almoco": "11:02",
+      "fim_almoco": "13:08",
+      "fim_exp": "17:38"
+    },
+    "CLAYVERTON SOUTO DE OLIVEIRA": {
+      "nome": "CLAYVERTON SOUTO DE OLIVEIRA",
+      "inicio_exp": "08:08",
+      "inicio_almoco": "12:08",
+      "fim_almoco": "13:38",
+      "fim_exp": ""
+    },
+    "JEFFERSON FIRMINO DA SILVA": {
+      "nome": "JEFFERSON FIRMINO DA SILVA",
+      "inicio_exp": "08:18",
+      "inicio_almoco": "13:06",
+      "fim_almoco": "13:34",
+      "fim_exp": "17:19"
+    },
+    "FELIPE MATEUS MEDEIROS DE LUCENA": {
+      "nome": "FELIPE MATEUS MEDEIROS DE LUCENA",
+      "inicio_exp": "11:32",
+      "inicio_almoco": "11:02",
+      "fim_almoco": "13:00",
+      "fim_exp": "19:00"
+    },
+    "DALTON SYMEY GODOI FONSECA": {
+      "nome": "DALTON SYMEY GODOI FONSECA",
+      "inicio_exp": "07:54",
+      "inicio_almoco": "11:07",
+      "fim_almoco": "12:29",
+      "fim_exp": "17:36"
+    },
+    "KAROLINE MONTEIRO": {
+      "nome": "KAROLINE MONTEIRO",
+      "inicio_exp": "09:03",
+      "inicio_almoco": "13:15",
+      "fim_almoco": "",
+      "fim_exp": "19:10"
+    },
+    "ANTONIA ELIZIENE DO NASCIMENTO": {
+      "nome": "ANTONIA ELIZIENE DO NASCIMENTO",
+      "inicio_exp": "09:05",
+      "inicio_almoco": "13:14",
+      "fim_almoco": "15:12",
+      "fim_exp": "19:00"
+    },
+    "KENIA KATIUCIA SANTOS DA SILVA": {
+      "nome": "KENIA KATIUCIA SANTOS DA SILVA",
+      "inicio_exp": "09:05",
+      "inicio_almoco": "13:07",
+      "fim_almoco": "13:45",
+      "fim_exp": "17:00"
+    },
+    "ANDERSON JUSSIER DA SILVA FERNANDES": {
+      "nome": "ANDERSON JUSSIER DA SILVA FERNANDES",
+      "inicio_exp": "09:40",
+      "inicio_almoco": "13:15",
+      "fim_almoco": "15:05",
+      "fim_exp": "19:08"
+    },
+    "ARTHUR PADILHA DE CARVALHO": {
+      "nome": "ARTHUR PADILHA DE CARVALHO",
+      "inicio_exp": "10:27",
+      "inicio_almoco": "13:55",
+      "fim_almoco": "14:53",
+      "fim_exp": "19:20"
+    },
+    "GERCIANO GLEY PEREIRA MARQUES FILHO": {
+      "nome": "GERCIANO GLEY PEREIRA MARQUES FILHO",
+      "inicio_exp": "",
+      "inicio_almoco": "12:32",
+      "fim_almoco": "14:26",
+      "fim_exp": "17:06"
+    }
+  },
+  "10-02-2026": {
+    "ROMUALDO SANTOS DE MELO": {
+      "nome": "ROMUALDO SANTOS DE MELO",
+      "inicio_exp": "07:29",
+      "inicio_almoco": "12:20",
+      "fim_almoco": "13:20",
+      "fim_exp": "16:37"
+    },
+    "DALTON SYMEY GODOI FONSECA": {
+      "nome": "DALTON SYMEY GODOI FONSECA",
+      "inicio_exp": "07:32",
+      "inicio_almoco": "11:07",
+      "fim_almoco": "12:37",
+      "fim_exp": "17:25"
+    },
+    "OYAMA EDUARDO FILGUEIRA AFONSO JUNIOR": {
+      "nome": "OYAMA EDUARDO FILGUEIRA AFONSO JUNIOR",
+      "inicio_exp": "07:38",
+      "inicio_almoco": "12:04",
+      "fim_almoco": "12:55",
+      "fim_exp": "18:32"
+    },
+    "MATHEUS FREITAS DIONISIO CAMARA": {
+      "nome": "MATHEUS FREITAS DIONISIO CAMARA",
+      "inicio_exp": "07:43",
+      "inicio_almoco": "13:50",
+      "fim_almoco": "",
+      "fim_exp": "18:29"
+    },
+    "ADRIA LORENA BESERRA DE LIMA": {
+      "nome": "ADRIA LORENA BESERRA DE LIMA",
+      "inicio_exp": "07:47",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "MARCELLE DIANNE ARAUJO MARTINS": {
+      "nome": "MARCELLE DIANNE ARAUJO MARTINS",
+      "inicio_exp": "07:47",
+      "inicio_almoco": "11:11",
+      "fim_almoco": "13:16",
+      "fim_exp": "17:32"
+    },
+    "Darllany": {
+      "nome": "Darllany",
+      "inicio_exp": "07:52",
+      "inicio_almoco": "11:11",
+      "fim_almoco": "13:01",
+      "fim_exp": "17:04"
+    },
+    "ANA KAROLINE XAVIER MONTEIRO": {
+      "nome": "ANA KAROLINE XAVIER MONTEIRO",
+      "inicio_exp": "11:06",
+      "inicio_almoco": "12:09",
+      "fim_almoco": "14:03",
+      "fim_exp": "17:03"
+    },
+    "CLAYVERTON SOUTO DE OLIVEIRA": {
+      "nome": "CLAYVERTON SOUTO DE OLIVEIRA",
+      "inicio_exp": "07:45",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "Fernanda Controle": {
+      "nome": "Fernanda Controle",
+      "inicio_exp": "08:05",
+      "inicio_almoco": "11:30",
+      "fim_almoco": "13:30",
+      "fim_exp": "17:30"
+    },
+    "FELIPE MATEUS MEDEIROS DE LUCENA": {
+      "nome": "FELIPE MATEUS MEDEIROS DE LUCENA",
+      "inicio_exp": "11:39",
+      "inicio_almoco": "11:05",
+      "fim_almoco": "12:59",
+      "fim_exp": "19:35"
+    },
+    "KENIA KATIUCIA SANTOS DA SILVA": {
+      "nome": "KENIA KATIUCIA SANTOS DA SILVA",
+      "inicio_exp": "13:15",
+      "inicio_almoco": "",
+      "fim_almoco": "14:01",
+      "fim_exp": "17:01"
+    },
+    "ANTONIA ELIZIENE DO NASCIMENTO": {
+      "nome": "ANTONIA ELIZIENE DO NASCIMENTO",
+      "inicio_exp": "09:01",
+      "inicio_almoco": "13:07",
+      "fim_almoco": "",
+      "fim_exp": "18:44"
+    },
+    "KAROLINE MONTEIRO": {
+      "nome": "KAROLINE MONTEIRO",
+      "inicio_exp": "09:11",
+      "inicio_almoco": "13:07",
+      "fim_almoco": "14:02",
+      "fim_exp": "18:34"
+    },
+    "ANDERSON JUSSIER DA SILVA FERNANDES": {
+      "nome": "ANDERSON JUSSIER DA SILVA FERNANDES",
+      "inicio_exp": "09:42",
+      "inicio_almoco": "13:06",
+      "fim_almoco": "15:13",
+      "fim_exp": "19:08"
+    },
+    "ARTHUR PADILHA DE CARVALHO": {
+      "nome": "ARTHUR PADILHA DE CARVALHO",
+      "inicio_exp": "10:15",
+      "inicio_almoco": "13:18",
+      "fim_almoco": "14:05",
+      "fim_exp": "18:52"
+    },
+    "MARCELO ALMEIDA DE PAIVA CAVALCANTI": {
+      "nome": "MARCELO ALMEIDA DE PAIVA CAVALCANTI",
+      "inicio_exp": "10:38",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": "19:15"
+    },
+    "CARLOS ADRIANO DA SILVA": {
+      "nome": "CARLOS ADRIANO DA SILVA",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": "11:23"
+    },
+    "GERCIANO GLEY PEREIRA MARQUES FILHO": {
+      "nome": "GERCIANO GLEY PEREIRA MARQUES FILHO",
+      "inicio_exp": "",
+      "inicio_almoco": "12:06",
+      "fim_almoco": "",
+      "fim_exp": "17:01"
+    },
+    "JEFFERSON FIRMINO DA SILVA": {
+      "nome": "JEFFERSON FIRMINO DA SILVA",
+      "inicio_exp": "",
+      "inicio_almoco": "13:21",
+      "fim_almoco": "14:22",
+      "fim_exp": "17:11"
+    },
+    "tec. Davison": {
+      "nome": "tec. Davison",
+      "inicio_exp": "",
+      "inicio_almoco": "14:31",
+      "fim_almoco": "",
+      "fim_exp": ""
+    }
+  },
+  "11-02-2026": {
+    "ROMUALDO SANTOS DE MELO": {
+      "nome": "ROMUALDO SANTOS DE MELO",
+      "inicio_exp": "07:37",
+      "inicio_almoco": "12:31",
+      "fim_almoco": "13:31",
+      "fim_exp": "16:50"
+    },
+    "Darllany": {
+      "nome": "Darllany",
+      "inicio_exp": "07:44",
+      "inicio_almoco": "12:36",
+      "fim_almoco": "14:35",
+      "fim_exp": "17:09"
+    },
+    "JEFFERSON FIRMINO DA SILVA": {
+      "nome": "JEFFERSON FIRMINO DA SILVA",
+      "inicio_exp": "07:54",
+      "inicio_almoco": "13:37",
+      "fim_almoco": "14:36",
+      "fim_exp": "17:24"
+    },
+    "ANA KAROLINE XAVIER MONTEIRO": {
+      "nome": "ANA KAROLINE XAVIER MONTEIRO",
+      "inicio_exp": "07:57",
+      "inicio_almoco": "11:27",
+      "fim_almoco": "14:38",
+      "fim_exp": "17:27"
+    },
+    "MARCELLE DIANNE ARAUJO MARTINS": {
+      "nome": "MARCELLE DIANNE ARAUJO MARTINS",
+      "inicio_exp": "08:00",
+      "inicio_almoco": "12:03",
+      "fim_almoco": "13:06",
+      "fim_exp": "17:36"
+    },
+    "CLAYVERTON SOUTO DE OLIVEIRA": {
+      "nome": "CLAYVERTON SOUTO DE OLIVEIRA",
+      "inicio_exp": "08:04",
+      "inicio_almoco": "",
+      "fim_almoco": "12:45",
+      "fim_exp": "17:23"
+    },
+    "DALTON SYMEY GODOI FONSECA": {
+      "nome": "DALTON SYMEY GODOI FONSECA",
+      "inicio_exp": "08:40",
+      "inicio_almoco": "11:17",
+      "fim_almoco": "12:45",
+      "fim_exp": "17:44"
+    },
+    "Fernanda Controle": {
+      "nome": "Fernanda Controle",
+      "inicio_exp": "08:43",
+      "inicio_almoco": "12:14",
+      "fim_almoco": "14:29",
+      "fim_exp": "17:36"
+    },
+    "KAROLINE MONTEIRO": {
+      "nome": "KAROLINE MONTEIRO",
+      "inicio_exp": "08:59",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": "16:26"
+    },
+    "ANTONIA ELIZIENE DO NASCIMENTO": {
+      "nome": "ANTONIA ELIZIENE DO NASCIMENTO",
+      "inicio_exp": "09:01",
+      "inicio_almoco": "12:34",
+      "fim_almoco": "14:35",
+      "fim_exp": "18:40"
+    },
+    "ANDERSON JUSSIER DA SILVA FERNANDES": {
+      "nome": "ANDERSON JUSSIER DA SILVA FERNANDES",
+      "inicio_exp": "09:58",
+      "inicio_almoco": "13:18",
+      "fim_almoco": "15:10",
+      "fim_exp": "18:42"
+    },
+    "undefined": {
+      "inicio_exp": "10:43",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "MARCELO ALMEIDA DE PAIVA CAVALCANTI": {
+      "nome": "MARCELO ALMEIDA DE PAIVA CAVALCANTI",
+      "inicio_exp": "10:58",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": "19:28"
+    },
+    "FELIPE MATEUS MEDEIROS DE LUCENA": {
+      "nome": "FELIPE MATEUS MEDEIROS DE LUCENA",
+      "inicio_exp": "13:31",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": "18:49"
+    },
+    "OYAMA EDUARDO FILGUEIRA AFONSO JUNIOR": {
+      "nome": "OYAMA EDUARDO FILGUEIRA AFONSO JUNIOR",
+      "inicio_exp": "",
+      "inicio_almoco": "11:37",
+      "fim_almoco": "12:54",
+      "fim_exp": "18:19"
+    },
+    "GERCIANO GLEY PEREIRA MARQUES FILHO": {
+      "nome": "GERCIANO GLEY PEREIRA MARQUES FILHO",
+      "inicio_exp": "",
+      "inicio_almoco": "12:00",
+      "fim_almoco": "14:01",
+      "fim_exp": "17:06"
+    },
+    "ARTHUR PADILHA DE CARVALHO": {
+      "nome": "ARTHUR PADILHA DE CARVALHO",
+      "inicio_exp": "",
+      "inicio_almoco": "13:21",
+      "fim_almoco": "14:14",
+      "fim_exp": "19:00"
+    },
+    "KENIA KATIUCIA SANTOS DA SILVA": {
+      "nome": "KENIA KATIUCIA SANTOS DA SILVA",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "13:48",
+      "fim_exp": "17:08"
+    }
+  },
+  "12-02-2026": {
+    "MARCELLE DIANNE ARAUJO MARTINS": {
+      "nome": "MARCELLE DIANNE ARAUJO MARTINS",
+      "inicio_exp": "07:27",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "ROMUALDO SANTOS DE MELO": {
+      "nome": "ROMUALDO SANTOS DE MELO",
+      "inicio_exp": "07:34",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "Darllany": {
+      "nome": "Darllany",
+      "inicio_exp": "07:37",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "ANA KAROLINE XAVIER MONTEIRO": {
+      "nome": "ANA KAROLINE XAVIER MONTEIRO",
+      "inicio_exp": "07:49",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "CLAYVERTON SOUTO DE OLIVEIRA": {
+      "nome": "CLAYVERTON SOUTO DE OLIVEIRA",
+      "inicio_exp": "07:53",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "JEFFERSON FIRMINO DA SILVA": {
+      "nome": "JEFFERSON FIRMINO DA SILVA",
+      "inicio_exp": "08:08",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "FELIPE MATEUS MEDEIROS DE LUCENA": {
+      "nome": "FELIPE MATEUS MEDEIROS DE LUCENA",
+      "inicio_exp": "08:14",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "DALTON SYMEY GODOI FONSECA": {
+      "nome": "DALTON SYMEY GODOI FONSECA",
+      "inicio_exp": "08:30",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "KAROLINE MONTEIRO": {
+      "nome": "KAROLINE MONTEIRO",
+      "inicio_exp": "09:02",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "ANTONIA ELIZIENE DO NASCIMENTO": {
+      "nome": "ANTONIA ELIZIENE DO NASCIMENTO",
+      "inicio_exp": "09:06",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "Thiago Freitas": {
+      "nome": "Thiago Freitas",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "09:38",
+      "fim_exp": ""
+    },
+    "CARLOS ADRIANO DA SILVA": {
+      "nome": "CARLOS ADRIANO DA SILVA",
+      "inicio_exp": "09:40",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "GEORGE CLARO TV": {
+      "nome": "GEORGE CLARO TV",
+      "inicio_exp": "09:46",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "Sidney Domingos": {
+      "nome": "Sidney Domingos",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "16:37",
+      "fim_exp": ""
+    }
+  },
+  "13-02-2026": {
+    "Acton Estenio": {
+      "nome": "Acton Estenio",
+      "inicio_exp": "08:01",
+      "inicio_almoco": "",
+      "fim_almoco": "11:26",
+      "fim_exp": ""
+    },
+    "Edson": {
+      "nome": "Edson",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "08:08",
+      "fim_exp": ""
+    },
+    "Egileno Sena": {
+      "nome": "Egileno Sena",
+      "inicio_exp": "08:09",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "Roberto technet": {
+      "nome": "Roberto technet",
+      "inicio_exp": "08:30",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "Deykson": {
+      "nome": "Deykson",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "11:14",
+      "fim_exp": ""
+    },
+    "KENIA KATIUCIA SANTOS DA SILVA": {
+      "nome": "KENIA KATIUCIA SANTOS DA SILVA",
+      "inicio_exp": "",
+      "inicio_almoco": "12:15",
+      "fim_almoco": "",
+      "fim_exp": ""
+    }
+  },
+  "14-02-2026": {
+    "Ronystay Oliveira Technet": {
+      "nome": "Ronystay Oliveira Technet",
+      "inicio_exp": "07:35",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "JEFFERSON FIRMINO DA SILVA": {
+      "nome": "JEFFERSON FIRMINO DA SILVA",
+      "inicio_exp": "07:55",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "iuryferreira technet": {
+      "nome": "iuryferreira technet",
+      "inicio_exp": "08:30",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "Adriano Costa": {
+      "nome": "Adriano Costa",
+      "inicio_exp": "08:42",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    }
+  },
+  "15-02-2026": {
+    "Roberto technet": {
+      "nome": "Roberto technet",
+      "inicio_exp": "08:28",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    }
+  },
+  "16-02-2026": {
+    "Deykson": {
+      "nome": "Deykson",
+      "inicio_exp": "07:17",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "CARLOS ADRIANO DA SILVA": {
+      "nome": "CARLOS ADRIANO DA SILVA",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "07:50",
+      "fim_exp": ""
+    },
+    "Acton Estenio": {
+      "nome": "Acton Estenio",
+      "inicio_exp": "07:53",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "KENIA KATIUCIA SANTOS DA SILVA": {
+      "nome": "KENIA KATIUCIA SANTOS DA SILVA",
+      "inicio_exp": "08:10",
+      "inicio_almoco": "",
+      "fim_almoco": "09:07",
+      "fim_exp": ""
+    },
+    "tec. Davison": {
+      "nome": "tec. Davison",
+      "inicio_exp": "08:09",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "MARCELO ALMEIDA DE PAIVA CAVALCANTI": {
+      "nome": "MARCELO ALMEIDA DE PAIVA CAVALCANTI",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": "08:31"
+    }
+  },
+  "17-02-2026": {
+    "LUIZ FELIPE GUEDES MOREIRA DANTAS": {
+      "nome": "LUIZ FELIPE GUEDES MOREIRA DANTAS",
+      "inicio_exp": "07:49",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    }
+  },
+  "18-02-2026": {
+    "Acton Estenio": {
+      "nome": "Acton Estenio",
+      "inicio_exp": "08:24",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "Fernanda Controle": {
+      "nome": "Fernanda Controle",
+      "inicio_exp": "08:26",
+      "inicio_almoco": "",
+      "fim_almoco": "10:25",
+      "fim_exp": ""
+    },
+    "Iury Pires": {
+      "nome": "Iury Pires",
+      "inicio_exp": "08:47",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "Adenildo Alexandre": {
+      "nome": "Adenildo Alexandre",
+      "inicio_exp": "08:52",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "augustofd68": {
+      "nome": "augustofd68",
+      "inicio_exp": "10:06",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "CARLOS ADRIANO DA SILVA": {
+      "nome": "CARLOS ADRIANO DA SILVA",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "12:28",
+      "fim_exp": ""
+    }
+  },
+  "19-02-2026": {
+    "Sidney Domingos": {
+      "nome": "Sidney Domingos",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "08:26",
+      "fim_exp": ""
+    },
+    "Leomir Silva": {
+      "nome": "Leomir Silva",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "12:50",
+      "fim_exp": ""
+    },
+    "CARLOS ADRIANO DA SILVA": {
+      "nome": "CARLOS ADRIANO DA SILVA",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "12:57",
+      "fim_exp": ""
+    },
+    "OYAMA EDUARDO FILGUEIRA AFONSO JUNIOR": {
+      "nome": "OYAMA EDUARDO FILGUEIRA AFONSO JUNIOR",
+      "inicio_exp": "",
+      "inicio_almoco": "13:34",
+      "fim_almoco": "",
+      "fim_exp": ""
+    }
+  },
+  "20-02-2026": {
+    "Edson": {
+      "nome": "Edson",
+      "inicio_exp": "07:37",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "Deykson": {
+      "nome": "Deykson",
+      "inicio_exp": "07:45",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "Acton Estenio": {
+      "nome": "Acton Estenio",
+      "inicio_exp": "07:48",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "Técnico Antonio Ribeiro": {
+      "nome": "Técnico Antonio Ribeiro",
+      "inicio_exp": "07:49",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "ADRIA LORENA BESERRA DE LIMA": {
+      "nome": "ADRIA LORENA BESERRA DE LIMA",
+      "inicio_exp": "07:49",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "Técnico Rudson": {
+      "nome": "Técnico Rudson",
+      "inicio_exp": "08:30",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "Sidney Domingos": {
+      "nome": "Sidney Domingos",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "11:40",
+      "fim_exp": ""
+    },
+    "João Maciel": {
+      "nome": "João Maciel",
+      "inicio_exp": "08:43",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "Fernanda Controle": {
+      "nome": "Fernanda Controle",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "08:47",
+      "fim_exp": ""
+    },
+    "Adenildo Alexandre": {
+      "nome": "Adenildo Alexandre",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "09:02",
+      "fim_exp": ""
+    },
+    "KENIA KATIUCIA SANTOS DA SILVA": {
+      "nome": "KENIA KATIUCIA SANTOS DA SILVA",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "09:12",
+      "fim_exp": ""
+    },
+    "Iury Pires": {
+      "nome": "Iury Pires",
+      "inicio_exp": "09:35",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "Douglas Rafael": {
+      "nome": "Douglas Rafael",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "09:41",
+      "fim_exp": ""
+    }
+  },
+  "21-02-2026": {
+    "Edson Assis": {
+      "nome": "Edson Assis",
+      "inicio_exp": "07:39",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "Deykson": {
+      "nome": "Deykson",
+      "inicio_exp": "07:59",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "KENIA KATIUCIA SANTOS DA SILVA": {
+      "nome": "KENIA KATIUCIA SANTOS DA SILVA",
+      "inicio_exp": "08:12",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "Paulo Cavalcante": {
+      "nome": "Paulo Cavalcante",
+      "inicio_exp": "09:14",
+      "inicio_almoco": "",
+      "fim_almoco": "",
+      "fim_exp": ""
+    },
+    "Sidney Domingos": {
+      "nome": "Sidney Domingos",
+      "inicio_exp": "",
+      "inicio_almoco": "",
+      "fim_almoco": "13:00",
+      "fim_exp": ""
+    }
+  }
+}
