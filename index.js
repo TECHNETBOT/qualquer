@@ -22,6 +22,7 @@ const ID_GRUPO_RELATORIO = '120363423496684075@g.us';
 const ID_GRUPO_ADESAO = '558496022125-1485433351@g.us';
 const ID_GRUPO_TECNICOS = '120363023249969562@g.us'; 
 const ID_GRUPO_CONTATOS = '120363422121095440@g.us'; 
+const ID_GRUPO_CONTROLADORES_PONTO = '558488045008-1401380014@g.us';
 
 const DATA_DIR = path.join(__dirname, 'data');
 const WHATS_TXT_PATH = path.join(DATA_DIR, 'whats.txt');
@@ -239,6 +240,7 @@ async function connectToWhatsApp() {
       const nomeUsuario = m.key.participant ? m.pushName : null; 
       const isGrupo = chatId.endsWith('@g.us');
       const isGrupoAutorizado = Data.isGrupoAutorizado(chatId) || chatId === ID_GRUPO_TESTE;
+      const isGrupoControladoresPonto = chatId === ID_GRUPO_CONTROLADORES_PONTO;
       const isImage = !!m.message?.imageMessage;
       const isQuotedImage = !!m.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage;
       const isDocument = !!m.message?.documentMessage;
@@ -553,9 +555,9 @@ ${resultado.naoEncontrados.join('\n')}`);
       }
       if (msgTexto === '!id') { await sock.sendMessage(chatId, { text: `🆔 Chat: ${chatId}\n👤 User: ${usuarioId}` }, { quoted: m }); return; }
 
-      if (msgTexto === '!controlador') { if (!isGrupoAutorizado) return; const relatorio = gerarRelatorioDia(); await sock.sendMessage(chatId, { text: relatorio }, { quoted: m }); return; }
-      if (msgTexto === '!planilha') { if (!isGrupoAutorizado) return; const csv = gerarRelatorioCSV(); await sock.sendMessage(chatId, { text: `📋 *HORÁRIOS DO DIA*\n\n_Copie o bloco abaixo:_\n\n\`\`\`${csv}\`\`\`` }, { quoted: m }); return; }
-      if (isGrupoAutorizado && msgTextoRaw.length > 0 && msgTextoRaw.length < 200) { 
+      if (msgTexto === '!controlador') { if (!isGrupoControladoresPonto) return; const relatorio = gerarRelatorioDia(); await sock.sendMessage(chatId, { text: relatorio }, { quoted: m }); return; }
+      if (msgTexto === '!planilha') { if (!isGrupoControladoresPonto) return; const csv = gerarRelatorioCSV(); await sock.sendMessage(chatId, { text: `📋 *HORÁRIOS DO DIA*\n\n_Copie o bloco abaixo:_\n\n\`\`\`${csv}\`\`\`` }, { quoted: m }); return; }
+      if (isGrupoControladoresPonto && msgTextoRaw.length > 0 && msgTextoRaw.length < 200) { 
           const resultadoPonto = processarMensagemPonto(nomeUsuario, msgTextoRaw, m.messageTimestamp);
           if (resultadoPonto) { await sock.sendMessage(chatId, { react: { text: '✅', key: m.key } }); console.log(`⏰ Ponto: ${resultadoPonto.nome} (${resultadoPonto.horario})`); }
       }
@@ -582,6 +584,27 @@ ${resultado.naoEncontrados.join('\n')}`);
               } else {
                   await sock.sendMessage(chatId, { text: '❌ Não consegui ler nada.' }, { quoted: m });
               }
+          }
+          return;
+      }
+
+      // ==================== [PRIORIDADE 5A] CONTATOS DIRETO (GRUPO CONTROLADORES) ====================
+      const matchControladores = msgTexto.match(/(?:contatos|conttatos|contats)\D*(\d{6,8})|(\d{6,8})\D*(?:contatos|conttatos|contats)/i);
+      if (isGrupoControladoresPonto && matchControladores) {
+          const termo = matchControladores[1] || matchControladores[2];
+          console.log(`🔍 [CONTROLADORES] Busca direta contrato: ${termo}`);
+
+          if (CACHE_CONTRATOS.length === 0) {
+              await sock.sendMessage(chatId, { text: `⚠️ Estou atualizando a base de dados agora, tente novamente em 1 minuto.` }, { quoted: m });
+              await atualizarCache();
+              return;
+          }
+
+          const achado = CACHE_CONTRATOS.find(r => r['Contrato'] === termo);
+          if (achado) {
+              await exibirDadosContrato(chatId, achado, termo, m);
+          } else {
+              await sock.sendMessage(chatId, { text: `⚠️ Contrato ${termo} não encontrado na base.` }, { quoted: m });
           }
           return;
       }
