@@ -139,7 +139,7 @@ function findColumnName(columns, candidates) {
 
   for (const candidate of candidates) {
     const key = normalizeName(candidate);
-    const found = normalized.find((item) => item.key.includes(key));
+    const found = normalized.find((item) => item.key.includes(key) || key.includes(item.key));
     if (found) return found.original;
   }
 
@@ -162,6 +162,19 @@ function isSameTechnician(whatsName, imperiumName) {
   return common.length >= 2;
 }
 
+
+function inferColumnByData(rows, columns, scorer, minScore = 3) {
+  let best = { col: null, score: 0 };
+  for (const col of columns) {
+    let score = 0;
+    for (const row of rows.slice(0, 200)) {
+      if (scorer(row[col])) score += 1;
+    }
+    if (score > best.score) best = { col, score };
+  }
+  return best.score >= minScore ? best.col : null;
+}
+
 function compare430({ whatsPath, imperiumXlsxPath, timeZone = 'America/Sao_Paulo' }) {
   if (!fs.existsSync(whatsPath)) throw new Error(`Arquivo Whats não encontrado: ${whatsPath}`);
   if (!fs.existsSync(imperiumXlsxPath)) throw new Error(`Arquivo Imperium não encontrado: ${imperiumXlsxPath}`);
@@ -180,18 +193,36 @@ function compare430({ whatsPath, imperiumXlsxPath, timeZone = 'America/Sao_Paulo
   const rows = xlsx.utils.sheet_to_json(sheet, { defval: '' });
   const allColumns = rows.length ? Object.keys(rows[0]) : [];
 
-  const contratoCol = findColumnName(allColumns, ['contrato']);
-  const tecnicoCol = findColumnName(allColumns, ['instalador', 'tecnico', 'técnico']);
-  const serialCol = findColumnName(allColumns, ['serial', 'numero serial', 'número serial']);
-  const dataBaixaCol = findColumnName(allColumns, ['data da baixa', 'baixa']);
+  let contratoCol = findColumnName(allColumns, ['contrato']);
+  let tecnicoCol = findColumnName(allColumns, ['instalador', 'tecnico', 'técnico', 'instalad']);
+  let serialCol = findColumnName(allColumns, ['serial', 'numero serial', 'número serial', 'num serial']);
+  let dataBaixaCol = findColumnName(allColumns, ['data da baixa', 'data baixa', 'data da b', 'baixa']);
+
+  if (!contratoCol) {
+    contratoCol = inferColumnByData(rows, allColumns, (v) => /^\d{6,8}$/.test(onlyDigits(v)), 1);
+  }
+  if (!serialCol) {
+    serialCol = inferColumnByData(rows, allColumns, (v) => {
+      const text = String(v || '').trim();
+      return /[a-z]/i.test(text) && /\d/.test(text) && text.replace(/\W/g, '').length >= 6;
+    }, 1);
+  }
+  if (!dataBaixaCol) {
+    dataBaixaCol = inferColumnByData(rows, allColumns, (v) => isSameDateInTimeZone(toDateFromExcel(v), new Date(), timeZone), 1)
+      || inferColumnByData(rows, allColumns, (v) => /\d{1,2}\/\d{1,2}\/\d{2,4}/.test(String(v || '')), 1);
+  }
+  if (!tecnicoCol) {
+    tecnicoCol = inferColumnByData(rows, allColumns, (v) => normalizeText(v).includes('desc'), 1);
+  }
 
   if (!contratoCol || !tecnicoCol || !serialCol || !dataBaixaCol) {
-    throw new Error(`Colunas obrigatórias não encontradas na aba ${sheetName} (Contrato, Instalador/Técnico, Serial, Data da Baixa).`);
+    throw new Error(`Colunas obrigatórias não encontradas na aba ${sheetName} (Contrato, Instalador/Técnico, Serial, Data da Baixa). Colunas lidas: ${allColumns.join(', ')}`);
   }
 
   const hoje = new Date();
   const imperiumFiltered = rows.filter((row) => {
-    const tecnicoValue = normalizeName(row[tecnicoCol] || '');
+    const tecnicoRaw = String(row[tecnicoCol] || '');
+    const tecnicoValue = normalizeText(tecnicoRaw);
     const isDesc = tecnicoValue.includes('desc');
     const sameDay = isSameDateInTimeZone(toDateFromExcel(row[dataBaixaCol]), hoje, timeZone);
     return isDesc && sameDay;
