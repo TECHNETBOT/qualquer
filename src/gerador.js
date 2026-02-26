@@ -20,6 +20,8 @@ function drawCenteredText(ctx, text, x, y, width) {
     ctx.fillText(safeText, startX, y, width - 8); 
 }
 
+const getFollowupText = () => 'Caso tenha mais equipamentos, separe com vírgula, ex: 123, 1D3, 34A...';
+
 const gerarComprovanteDevolucao = async (dados) => {
     // === CONFIGURAÇÕES GERAIS ===
     const width = 1240;
@@ -226,4 +228,4 @@ const gerarComprovanteDevolucao = async (dados) => {
     return canvas.toBuffer();
 };
 
-module.exports = { gerarComprovanteDevolucao };
+module.exports = { gerarComprovanteDevolucao, getFollowupText };
