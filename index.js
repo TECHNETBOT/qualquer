@@ -4,6 +4,7 @@ const pino = require('pino');
 const qrcode = require('qrcode-terminal');
 const fs = require('fs');
 const path = require('path');
+const AdmZip = require('adm-zip');
 
 // IMPORTAÇÕES LOCAIS
 const C = require('./src/config');
@@ -11,7 +12,7 @@ const Utils = require('./src/utils');
 const Data = require('./src/data'); // Usa o data.js atualizado
 const Sheets = require('./src/sheets'); // Usa o sheets.js atualizado
 const Alerts = require('./src/alerts');
-const { gerarComprovanteDevolucao } = require('./src/gerador');
+const { gerarComprovanteDevolucao, getFollowupText } = require('./src/gerador');
 const { lerTextoDeImagem } = require('./src/ocr'); 
 const { processarMensagemPonto, gerarRelatorioDia, gerarRelatorioCSV } = require('./src/ponto');
 const { compare430, formatForCopy } = require('./src/compare430');
@@ -28,6 +29,16 @@ const DATA_DIR = path.join(__dirname, 'data');
 const WHATS_TXT_PATH = path.join(DATA_DIR, 'whats.txt');
 const WHATS_CSV_PATH = path.join(DATA_DIR, 'whats.csv');
 const IMPERIUM_XLSX_PATH = path.join(DATA_DIR, 'imperium.xlsx');
+
+const limparArquivosComparacao430 = () => {
+  [WHATS_TXT_PATH, WHATS_CSV_PATH, IMPERIUM_XLSX_PATH].forEach((filePath) => {
+    try {
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    } catch (e) {
+      console.error('Erro ao limpar arquivo 430:', filePath, e.message);
+    }
+  });
+};
 
 // === CACHE E MEMÓRIA ===
 let CACHE_CONTRATOS = []; 
@@ -274,25 +285,34 @@ Envie os dois documentos (.txt/.csv e .xlsx).`
               });
 
               if (resultado.totalWhats430 === 0) {
-                  await sock.sendMessage(chatId, { text: 'ℹ️ Não encontrei mensagens com *430* no arquivo Whats informado.' }, { quoted: m });
+                  await sock.sendMessage(chatId, { text: 'ℹ️ Não encontrei mensagens com *430/FR* no arquivo Whats informado.' }, { quoted: m });
                   return;
               }
 
               const blocos = [];
-              blocos.push(`📊 Total de contratos 430 no Whats: *${resultado.totalWhats430}*`);
+              blocos.push(`📊 Contratos únicos 430/FR no Whats: *${resultado.totalContratosWhats430 || resultado.totalWhats430}*`);
 
-              if (resultado.divergencias.length > 0) {
+              if (resultado.relatorio) {
                   blocos.push(`
-🚨 *DIVERGÊNCIAS*
-${formatForCopy(resultado.divergencias)}`);
+${resultado.relatorio}`);
               } else {
-                  blocos.push('\n✅ Nenhuma divergência de técnico encontrada para os 430.');
-              }
+                  if (resultado.divergencias.length > 0) {
+                      blocos.push(`
+❌ *DIVERGÊNCIAS*
+${formatForCopy(resultado.divergencias)}`);
+                  } else {
+                      blocos.push('\n✅ Nenhuma divergência de técnico encontrada para os 430/FR.');
+                  }
 
-              if (resultado.naoEncontrados.length > 0) {
-                  blocos.push(`
-📌 *CONTRATOS 430 NÃO ENCONTRADOS NO XLSX (DESC + hoje)*
-${resultado.naoEncontrados.join('\n')}`);
+                  if (resultado.naoEncontrados.length > 0) {
+                      const listaNaoEncontrados = resultado.naoEncontrados
+                        .map((n) => typeof n === 'object' ? `${n.contrato} - ${n.tecnicoWhats}` : String(n))
+                        .join('\n');
+
+                      blocos.push(`
+⚠️ *CONTRATOS 430/FR NÃO ENCONTRADOS NO XLSX (DESC + hoje)*
+${listaNaoEncontrados}`);
+                  }
               }
 
               const respostaFinal = blocos.join('\n');
@@ -321,6 +341,8 @@ ${resultado.naoEncontrados.join('\n')}`);
           } catch (err) {
               console.error('Erro comparar430:', err);
               await sock.sendMessage(chatId, { text: `❌ Erro ao comparar 430: ${err.message}` }, { quoted: m });
+          } finally {
+              limparArquivosComparacao430();
           }
       };
 
@@ -345,7 +367,7 @@ ${resultado.naoEncontrados.join('\n')}`);
 • !controlador - Relatório do dia
 • !planilha - CSV do ponto
 • !marcar - Marca TODOS (Cuidado!)
-• !comparar430 - Compara Whats x Imperium
+• !comparar430 / !relatorio430 / relatorio - Compara Whats x Imperium
 
 📎 *ARQUIVOS (documento)*
 • Envie .txt/.csv (nome livre, ex: relatorio_todas_mensagens_24_02_2026_a_24_02_2026.txt)
@@ -368,17 +390,18 @@ ${resultado.naoEncontrados.join('\n')}`);
       if (msgTexto.startsWith('!unaddad ')) { await removerDaLista(chatId, Utils.normalizeDigits(msgTextoRaw.slice(9)), Data.listaAD, Data.salvarAD, 'ADESÃO'); return; }
       if (msgTexto === '!listaad') { await listarNumeros(chatId, Data.listaAD, 'ADESÃO'); return; }
 
-      // ==================== CAPTURA DE DOCUMENTOS (whats / imperium) ====================
+      // ==================== CAPTURA DE DOCUMENTOS (whats / imperium / zip) ====================
       if (isDocument) {
           const originalName = (m.message?.documentMessage?.fileName || '').toLowerCase().trim();
           const mimetype = (m.message?.documentMessage?.mimetype || '').toLowerCase();
           const isTxtOrCsv = originalName.endsWith('.txt') || originalName.endsWith('.csv') || mimetype.includes('text/') || mimetype.includes('csv');
-          const isXlsx = originalName.endsWith('.xlsx') || mimetype.includes('spreadsheetml');
+          const isXlsx = originalName.endsWith('.xlsx') || originalName.endsWith('.xls') || mimetype.includes('spreadsheetml') || mimetype.includes('ms-excel') || mimetype.includes('officedocument');
+          const isZip = originalName.endsWith('.zip') || mimetype.includes('zip');
 
           const legendaMarcaWhats = documentCaption === 'whats';
           const legendaMarcaImperium = documentCaption === 'imperium';
 
-          if (isTxtOrCsv || isXlsx || legendaMarcaWhats || legendaMarcaImperium) {
+          if (isTxtOrCsv || isXlsx || isZip || legendaMarcaWhats || legendaMarcaImperium) {
               const fileBuffer = await downloadMediaMessage(m, 'buffer', {}, {
                   logger: pino({ level: 'silent' }),
                   reuploadRequest: sock.updateMediaMessage
@@ -390,7 +413,40 @@ ${resultado.naoEncontrados.join('\n')}`);
               }
 
               let salvouAlgum = false;
-              if (isTxtOrCsv || legendaMarcaWhats) {
+              if (isZip) {
+                  try {
+                      const zip = new AdmZip(fileBuffer);
+                      const entries = zip.getEntries().filter((e) => !e.isDirectory);
+
+                      const xlsxEntry = entries.find((e) => e.entryName.toLowerCase().endsWith('.xlsx'));
+                      const whatsEntry = entries.find((e) => {
+                          const n = e.entryName.toLowerCase();
+                          return n.endsWith('.txt') || n.endsWith('.csv');
+                      });
+
+                      if (xlsxEntry) {
+                          fs.writeFileSync(IMPERIUM_XLSX_PATH, xlsxEntry.getData());
+                          salvouAlgum = true;
+                      }
+
+                      if (whatsEntry) {
+                          const lower = whatsEntry.entryName.toLowerCase();
+                          const destino = lower.endsWith('.csv') ? WHATS_CSV_PATH : WHATS_TXT_PATH;
+                          fs.writeFileSync(destino, whatsEntry.getData());
+                          salvouAlgum = true;
+                      }
+
+                      if (!salvouAlgum) {
+                          await sock.sendMessage(chatId, { text: '⚠️ ZIP recebido, mas não encontrei .xlsx e/ou .txt/.csv dentro dele.' }, { quoted: m });
+                          return;
+                      }
+
+                      await sock.sendMessage(chatId, { text: '✅ ZIP processado. Arquivos internos salvos para comparação 430.' }, { quoted: m });
+                  } catch (zipErr) {
+                      await sock.sendMessage(chatId, { text: `❌ Erro ao ler ZIP: ${zipErr.message}` }, { quoted: m });
+                      return;
+                  }
+              } else if (isTxtOrCsv || legendaMarcaWhats) {
                   const destino = originalName.endsWith('.csv') ? WHATS_CSV_PATH : WHATS_TXT_PATH;
                   fs.writeFileSync(destino, fileBuffer);
                   salvouAlgum = true;
@@ -407,13 +463,16 @@ ${resultado.naoEncontrados.join('\n')}`);
                   if (hasWhats && hasImperium) {
                       await sock.sendMessage(chatId, { text: '🤖 Arquivos detectados (.txt/.csv + .xlsx). Iniciando comparação 430...' }, { quoted: m });
                       await executarComparacao430();
+                  } else {
+                      await sock.sendMessage(chatId, { text: '📥 Arquivo recebido. Aguardando o outro arquivo para comparar (Whats + Imperium).' }, { quoted: m });
                   }
                   return;
               }
           }
       }
 
-      if (msgTexto === '!comparar430') {
+      if (msgTexto === '!comparar430' || msgTexto === '!relatorio430' || msgTextoSemAcento === 'relatorio' || msgTextoSemAcento.startsWith('relatorio')) {
+          await sock.sendMessage(chatId, { text: '📊 Gerando relatório 430/FR, aguarde...' }, { quoted: m });
           await executarComparacao430();
           return;
       }
@@ -503,6 +562,16 @@ ${resultado.naoEncontrados.join('\n')}`);
       // ==================== [PRIORIDADE 3] COMPROVANTE ====================
       if (msgTextoSemAcento.includes('tecnico') && (msgTextoSemAcento.includes('serial') || msgTextoSemAcento.includes('equipamento'))) {
            try {
+              const inferirModeloPorSerial = (serial) => {
+                  const base = String(serial || '').toUpperCase().replace(/\W/g, '');
+                  if (!base) return 'DECODER';
+                  const temLetra = /[A-Z]/.test(base);
+                  const temNumero = /\d/.test(base);
+                  if (temLetra && temNumero) return 'EMTA';
+                  if (/^\d+$/.test(base)) return base.length >= 12 ? 'SMART' : 'DECODER';
+                  return 'DECODER';
+              };
+
               const extrairValor = (chave) => {
                   const chaveClean = chave.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
                   const linhas = msgTextoRaw.split('\n');
@@ -517,33 +586,48 @@ ${resultado.naoEncontrados.join('\n')}`);
               const data = extrairValor('Data');
               const contrato = extrairValor('Contrato');
               const nomeCliente = extrairValor('Nome do cliente');
-              const tecnico = extrairValor('Nome do Técnico');
-              let rawEquips = extrairValor('Equipamentos') || extrairValor('Numero serial');
+              const tecnico = (extrairValor('Nome do Técnico') || extrairValor('Tecnico')).replace(/^\.\s*/, '');
+              let rawEquips = extrairValor('Equipamentos') || extrairValor('Numero serial') || extrairValor('Número serial');
 
               if (!contrato || !rawEquips) { await sock.sendMessage(chatId, { text: '⚠️ Faltou o Contrato ou os Equipamentos.' }, { quoted: m }); return; }
 
-              const palavrasChave = ['EMTA', 'DECODE', 'SMART', 'MASH', 'HGU', 'ONT', 'APARELHO'];
+              const palavrasChave = ['EMTA', 'DECODE', 'SMART', 'MASH', 'HGU', 'ONT', 'DECODER'];
               const listaEquipamentosProcessada = rawEquips.split(',').map(item => {
                   let itemLimpo = item.trim().toUpperCase();
+                  const smartForcado = itemLimpo.startsWith('*');
+                  if (smartForcado) itemLimpo = itemLimpo.replace(/^\*+\s*/, '');
+
                   for (const modelo of palavrasChave) {
                       if (itemLimpo.startsWith(modelo)) {
-                          let serialSobra = itemLimpo.substring(modelo.length).replace(/^[:;\s-]+/, '').trim();
-                          if (serialSobra) return { modelo: modelo, serial: serialSobra };
+                          let serialSobra = itemLimpo.substring(modelo.length).replace(/^[:;\s-]+/, '').trim().replace(/^\*+\s*/, '');
+                          if (!serialSobra) return null;
+                          if (smartForcado) return { modelo: 'SMART', serial: serialSobra };
+                          return { modelo: modelo === 'DECODE' ? 'DECODER' : modelo, serial: serialSobra };
                       }
                   }
+
                   if (itemLimpo.includes(':')) {
                       const parts = itemLimpo.split(':');
-                      return { modelo: parts[0].trim(), serial: parts.slice(1).join(':').trim() };
-                  } else {
-                      return { modelo: 'APARELHO', serial: itemLimpo };
+                      const modeloDeclarado = parts[0].trim().toUpperCase();
+                      const serialDeclarado = parts.slice(1).join(':').trim().replace(/^\*+\s*/, '');
+                      const modeloNormalizado = smartForcado
+                        ? 'SMART'
+                        : (['EMTA', 'SMART', 'DECODER'].includes(modeloDeclarado)
+                            ? modeloDeclarado
+                            : inferirModeloPorSerial(serialDeclarado));
+                      return { modelo: modeloNormalizado, serial: serialDeclarado };
                   }
-              }).filter(i => i.serial);
+
+                  const serialFinal = itemLimpo.replace(/^\*+\s*/, '');
+                  return { modelo: smartForcado ? 'SMART' : inferirModeloPorSerial(serialFinal), serial: serialFinal };
+              }).filter(i => i && i.serial);
 
               if (listaEquipamentosProcessada.length === 0) { await sock.sendMessage(chatId, { text: '⚠️ Nenhum serial válido.' }, { quoted: m }); return; }
 
               await sock.sendMessage(chatId, { react: { text: '⏳', key: m.key } });
               const bufferImagem = await gerarComprovanteDevolucao({ data, contrato, nomeCliente, equipamentos: listaEquipamentosProcessada, tecnico });
               await sock.sendMessage(chatId, { image: bufferImagem, caption: `✅ Comprovante Gerado.\nCliente: ${nomeCliente}` }, { quoted: m });
+              await sock.sendMessage(chatId, { text: getFollowupText() }, { quoted: m });
           } catch (err) { console.error('Erro comprovante:', err); }
           return;
       }
