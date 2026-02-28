@@ -11,7 +11,8 @@
   "description": "",
   "dependencies": {
     "@hapi/boom": "^10.0.1",
-    "@whiskeysockets/baileys": "^7.0.0-rc.9",
+    "@whiskeysockets/baileys": "^6.7.9",
+    "adm-zip": "^0.5.16",
     "axios": "^1.13.4",
     "canvas": "^3.2.1",
     "csv-parse": "^6.1.0",
