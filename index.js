@@ -34,10 +34,11 @@ const GRUPOS_CONTATOS_TOA = new Set([
 ]);
 
 const BOT_BUILD = process.env.BOT_BUILD || 'v30';
-let PLANILHA_ATIVA = false; // desativada por padrão — use !ligarplanilha para ativar
+let PLANILHA_ATIVA = false;
 const precisaValidarURA = (chatId) => chatId === ID_GRUPO_TECNICOS;
 
 const DATA_DIR = path.join(__dirname, 'data');
+const AUTH_DIR = path.join(__dirname, 'auth_baileys');
 const WHATS_TXT_PATH = path.join(DATA_DIR, 'whats.txt');
 const WHATS_CSV_PATH = path.join(DATA_DIR, 'whats.csv');
 const IMPERIUM_XLSX_PATH = path.join(DATA_DIR, 'imperium.xlsx');
@@ -49,49 +50,39 @@ const toaBridge = createToaBridge({ dataDir: DATA_DIR, port: TOA_BRIDGE_PORT, ho
 
 toaBridge.start();
 
+// Limpa sessão antiga para forçar novo QR
+function limparSessaoWhatsApp() {
+  try {
+    if (fs.existsSync(AUTH_DIR)) {
+      fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+      console.log('🗑️  Sessão antiga removida — aguardando novo QR...');
+    }
+  } catch (e) {
+    console.error('❌ Erro ao limpar sessão:', e.message);
+  }
+}
+
 function startToaChromeAutomation() {
   if (process.env.TOA_AUTO_LOGIN_ENABLED === '0') {
     console.log(`🌐 [${BOT_BUILD}] abertura automática do TOA desativada por env (TOA_AUTO_LOGIN_ENABLED=0)`);
     return;
   }
-
   const scriptPath = path.join(__dirname, 'src', 'toa_auto_login.py');
   const pythonCmd = process.env.PYTHON_BIN || 'python3';
-  const child = spawn(pythonCmd, [scriptPath], {
-    env: { ...process.env, BOT_BUILD },
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
-
+  const child = spawn(pythonCmd, [scriptPath], { env: { ...process.env, BOT_BUILD }, stdio: ['ignore', 'pipe', 'pipe'] });
   console.log(`🌐 [${BOT_BUILD}] abrindo Chrome no TOA...`);
-
-  child.stdout.on('data', (data) => {
-    const text = data.toString().trim();
-    if (text) console.log(`🌐 [${BOT_BUILD}] toa-open: ${text}`);
-  });
-
-  child.stderr.on('data', (data) => {
-    const text = data.toString().trim();
-    if (text) console.log(`🌐 [${BOT_BUILD}] toa-open-err: ${text}`);
-  });
-
-  child.on('error', (err) => {
-    console.log(`🌐 [${BOT_BUILD}] falha ao abrir TOA: ${err.message}`);
-  });
-
-  child.on('close', (code) => {
-    console.log(`🌐 [${BOT_BUILD}] rotina de abertura TOA finalizada (code=${code})`);
-  });
+  child.stdout.on('data', (data) => { const t = data.toString().trim(); if (t) console.log(`🌐 [${BOT_BUILD}] toa-open: ${t}`); });
+  child.stderr.on('data', (data) => { const t = data.toString().trim(); if (t) console.log(`🌐 [${BOT_BUILD}] toa-open-err: ${t}`); });
+  child.on('error', (err) => { console.log(`🌐 [${BOT_BUILD}] falha ao abrir TOA: ${err.message}`); });
+  child.on('close', (code) => { console.log(`🌐 [${BOT_BUILD}] rotina de abertura TOA finalizada (code=${code})`); });
 }
 
 startToaChromeAutomation();
 
 const limparArquivosComparacao430 = () => {
   [WHATS_TXT_PATH, WHATS_CSV_PATH, IMPERIUM_XLSX_PATH].forEach((filePath) => {
-    try {
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-    } catch (e) {
-      console.error('Erro ao limpar arquivo 430:', filePath, e.message);
-    }
+    try { if (fs.existsSync(filePath)) fs.unlinkSync(filePath); }
+    catch (e) { console.error('Erro ao limpar arquivo 430:', filePath, e.message); }
   });
 };
 
@@ -99,12 +90,8 @@ const limparArquivosComparacao430 = () => {
 let CACHE_CONTRATOS = []; 
 let CACHE_FORAROTA = []; 
 let CONTRATOS_USADOS = new Set(Data.listaForaRotaUsados || []); 
-
-// === CONTROLE DE URA ===
 const esperaConfirmacaoURA = new Map(); 
-
 const TEMPO_ATUALIZACAO_MINUTOS = 5; 
-
 let ultimoAlertaEnviado = "";
 let ultimoAlertaVT = "";
 let ultimoAlertaAD = "";
@@ -128,86 +115,73 @@ async function atualizarCache() {
   console.log('🔄 Atualizando caches...');
   try {
     const dadosGeral = await Sheets.obterBaseContratos();
-    if (dadosGeral && dadosGeral.length > 0) {
-      CACHE_CONTRATOS = dadosGeral;
-      console.log(`✅ CACHE GERAL: ${CACHE_CONTRATOS.length} linhas.`);
-    }
+    if (dadosGeral && dadosGeral.length > 0) { CACHE_CONTRATOS = dadosGeral; console.log(`✅ CACHE GERAL: ${CACHE_CONTRATOS.length} linhas.`); }
     const dadosForaRota = await Sheets.obterBaseForaRota();
-    if (dadosForaRota && dadosForaRota.length > 0) {
-      CACHE_FORAROTA = dadosForaRota;
-      console.log(`✅ CACHE FORA ROTA: ${CACHE_FORAROTA.length} linhas.`);
-    }
-  } catch (e) {
-    console.error('❌ Erro fatal ao atualizar cache:', e);
-  }
+    if (dadosForaRota && dadosForaRota.length > 0) { CACHE_FORAROTA = dadosForaRota; console.log(`✅ CACHE FORA ROTA: ${CACHE_FORAROTA.length} linhas.`); }
+  } catch (e) { console.error('❌ Erro fatal ao atualizar cache:', e); }
 }
 
 // ==================== FUNÇÕES TOA ====================
-
-// Lookup com timeout curto — nunca bloqueia o event loop
 async function toaBridgeLookupWithTimeout(termo, timeoutMs = 500) {
   return new Promise((resolve) => {
-    const timer = setTimeout(() => {
-      TOA_LOG.warn(`timeout (${timeoutMs}ms) para contrato=${termo}`);
-      resolve(null);
-    }, timeoutMs);
+    const timer = setTimeout(() => { resolve(null); }, timeoutMs);
     Promise.resolve(toaBridge.findByContract(termo))
       .then((result) => { clearTimeout(timer); resolve(result); })
       .catch((err) => { clearTimeout(timer); TOA_LOG.error(`findByContract falhou: ${err.message}`); resolve(null); });
   });
 }
 
-// Polling não-bloqueante: fica tentando e responde quando a extensão enviar os dados
+const _pollingAtivos = new Map(); // evita polling duplicado por contrato
+
 function iniciarPollingEResponder({ chatId, termo, message, timeoutMs = 25000, intervalMs = 2000 }) {
+  // Se já há polling ativo para esse contrato, não inicia outro
+  if (_pollingAtivos.has(termo)) {
+    TOA_LOG.warn(`polling já ativo para contrato=${termo} — ignorando duplicata`);
+    return;
+  }
   const inicio = Date.now();
   TOA_LOG.info(`iniciando polling contrato=${termo} timeout=${timeoutMs}ms`);
-
+  _pollingAtivos.set(termo, true);
   const interval = setInterval(async () => {
     const decorrido = Date.now() - inicio;
     const achado = toaBridge.findByContract(termo);
-
     if (achado) {
       clearInterval(interval);
+      _pollingAtivos.delete(termo);
       TOA_LOG.info(`polling encontrou contrato=${termo} após ${decorrido}ms`);
-      const resposta = formatToaContactMessage(chatId, termo, achado);
-      await sock.sendMessage(chatId, { text: resposta }, { quoted: message });
+      try { await sock.sendMessage(chatId, { text: formatToaContactMessage(chatId, termo, achado) }, { quoted: message }); }
+      catch (e) { TOA_LOG.error(`erro ao enviar resposta polling: ${e.message}`); }
       return;
     }
-
     if (decorrido >= timeoutMs) {
       clearInterval(interval);
+      _pollingAtivos.delete(termo);
       TOA_LOG.warn(`polling expirado contrato=${termo} após ${decorrido}ms`);
-      await sock.sendMessage(chatId, {
-        text: `⚠️ Não consegui buscar o contrato *${termo}* automaticamente.\n\nAbra uma OS no TOA para ativar a extensão e tente novamente.`
-      }, { quoted: message });
+      try {
+        await sock.sendMessage(chatId, {
+          text: `⚠️ Não consegui buscar o contrato *${termo}* automaticamente.\n\nAbra uma OS no TOA para ativar a extensão e tente novamente.`
+        }, { quoted: message });
+      } catch (e) { TOA_LOG.error(`erro ao enviar timeout msg: ${e.message}`); }
     }
   }, intervalMs);
 }
 
 // ==================== FUNÇÕES AUXILIARES ====================
-
 const enviarMensagemComMarcacaoLista = async (grupoId, textoBase, listaNumeros) => {
   try {
-    if (!listaNumeros || listaNumeros.length === 0) {
-      await sock.sendMessage(grupoId, { text: textoBase });
-      return;
-    }
+    if (!listaNumeros || listaNumeros.length === 0) { await sock.sendMessage(grupoId, { text: textoBase }); return; }
     const mentions = listaNumeros.map(num => `${num}@s.whatsapp.net`);
-    const textoMentions = listaNumeros.map(num => `@${num}`).join(' ');
-    const textoFinal = `${textoBase}\n\n${textoMentions}`;
-    await sock.sendMessage(grupoId, { text: textoFinal, mentions: mentions });
+    const textoFinal = `${textoBase}\n\n${listaNumeros.map(num => `@${num}`).join(' ')}`;
+    await sock.sendMessage(grupoId, { text: textoFinal, mentions });
     console.log(`📢 Aviso enviado para ${grupoId} (Marcados: ${listaNumeros.length})`);
-  } catch (e) {
-    console.error(`❌ Erro ao marcar lista no grupo ${grupoId}:`, e);
-  }
+  } catch (e) { console.error(`❌ Erro ao marcar lista no grupo ${grupoId}:`, e); }
 };
 
 const enviarMensagemComMarcacaoGeral = async (grupoId, textoBase) => {
   try {
     const metadata = await sock.groupMetadata(grupoId);
     const participantes = metadata.participants.map(p => p.id);
-    const mencoesTexto = participantes.map(p => `@${p.split('@')[0]}`).join(' ');
-    const textoFinal = `${textoBase}\n\n${mencoesTexto}`;
+    const textoFinal = `${textoBase}\n\n${participantes.map(p => `@${p.split('@')[0]}`).join(' ')}`;
     await sock.sendMessage(grupoId, { text: textoFinal, mentions: participantes });
   } catch (e) { console.error(e); }
 };
@@ -220,16 +194,14 @@ const validarNumero = async (chatId, numero, comandoExemplo) => {
 const adicionarNaLista = async (chatId, numero, arrayLista, funcaoSalvar, nomeLista, exemplo) => {
   if (!(await validarNumero(chatId, numero, exemplo))) return;
   if (arrayLista.includes(numero)) { await sock.sendMessage(chatId, { text: `⚠️ ${numero} já está na lista ${nomeLista}.` }); return; }
-  arrayLista.push(numero);
-  funcaoSalvar(); 
+  arrayLista.push(numero); funcaoSalvar();
   await sock.sendMessage(chatId, { text: `✅ ${numero} adicionado em ${nomeLista}!\n📋 Total: ${arrayLista.length}` });
 };
 
 const removerDaLista = async (chatId, numero, arrayLista, funcaoSalvar, nomeLista) => {
   const index = arrayLista.indexOf(numero);
   if (index === -1) { await sock.sendMessage(chatId, { text: `⚠️ ${numero} não está na lista ${nomeLista}.` }); return; }
-  arrayLista.splice(index, 1);
-  funcaoSalvar(); 
+  arrayLista.splice(index, 1); funcaoSalvar();
   await sock.sendMessage(chatId, { text: `✅ ${numero} removido de ${nomeLista}!\n📋 Total: ${arrayLista.length}` });
 };
 
@@ -260,21 +232,12 @@ async function exibirDadosContrato(chatId, encontrado, termoBusca, message) {
 
 function formatToaContactMessage(chatId, termoBusca, data) {
   let resposta = '';
-  if (chatId === ID_GRUPO_CONTATOS || chatId === ID_GRUPO_TECNICOS) {
-    resposta = `✅ *CONTATOS LIBERADOS (TOA)*\n\n`;
-  }
-
+  if (chatId === ID_GRUPO_CONTATOS || chatId === ID_GRUPO_TECNICOS) resposta = `✅ *CONTATOS LIBERADOS (TOA)*\n\n`;
   resposta += `📄 *Contrato:* ${termoBusca}\n────────────────────\n`;
-
-  data.telefones.forEach((tel, index) => {
-    resposta += `📞 *Tel ${index + 1}:* ${tel}\n`;
-  });
-
+  data.telefones.forEach((tel, index) => { resposta += `📞 *Tel ${index + 1}:* ${tel}\n`; });
   resposta += `────────────────────\n`;
-
   if (data.janela) resposta += `🕐 *Janela:* ${data.janela}\n`;
   if (data.tecnico) resposta += `👷 *Técnico:* ${data.tecnico}\n`;
-
   return resposta.trim();
 }
 
@@ -282,14 +245,8 @@ function runPythonToaLookup(contract) {
   return new Promise((resolve) => {
     const scriptPath = path.join(__dirname, 'src', 'toa_lookup.py');
     const pythonCmd = process.env.PYTHON_BIN || 'python3';
-    const child = spawn(pythonCmd, [scriptPath, String(contract)], {
-      env: process.env,
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-
-    let stdout = '';
-    let stderr = '';
-
+    const child = spawn(pythonCmd, [scriptPath, String(contract)], { env: process.env, stdio: ['ignore', 'pipe', 'pipe'] });
+    let stdout = '', stderr = '';
     child.stdout.on('data', (data) => { stdout += data.toString(); });
     child.stderr.on('data', (data) => { stderr += data.toString(); });
     child.on('error', (err) => { resolve({ ok: false, error: err.message, stdout, stderr }); });
@@ -300,34 +257,60 @@ function runPythonToaLookup(contract) {
 // ==================== MAIN ====================
 async function connectToWhatsApp() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
-  const { state, saveCreds } = await useMultiFileAuthState('auth_baileys');
+  fs.mkdirSync(AUTH_DIR, { recursive: true });
+
+  const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
   const { version, isLatest } = await fetchLatestBaileysVersion();
   console.log(`📦 Versão WhatsApp Web usada: ${version.join('.')} (latest: ${isLatest})`);
 
   sock = makeWASocket({
-    auth: state, printQRInTerminal: false, logger: pino({ level: 'fatal' }),
-    browser: ['Bot Consulta', 'Chrome', '1.0.0'], markOnlineOnConnect: false,
-    version
+    auth: state,
+    printQRInTerminal: false,
+    logger: pino({ level: 'fatal' }),
+    browser: ['Bot Consulta', 'Chrome', '1.0.0'],
+    markOnlineOnConnect: false,
+    version,
   });
 
   sock.ev.on('connection.update', async (update) => {
     const { connection, lastDisconnect, qr } = update;
+
     if (qr) {
       console.log('📱 QR Code recebido! Escaneie com o WhatsApp.');
       qrcode.generate(qr, { small: true }, (qrCode) => console.log(qrCode));
     }
-    if (connection === 'close') {
-      const statusCode = (lastDisconnect?.error instanceof Boom) ? lastDisconnect.error.output.statusCode : 'desconhecido';
-      console.log(`🔌 Conexão fechada. Motivo: ${statusCode}`);
-      const shouldReconnect = (lastDisconnect?.error instanceof Boom) ? lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut : true;
 
-      if (shouldReconnect) {
-        reconnectAttempts += 1;
-        const retryDelayMs = Math.min(3000 * reconnectAttempts, 15000);
-        console.log(`🔄 Tentando reconectar em ${Math.round(retryDelayMs / 1000)}s...`);
+    if (connection === 'close') {
+      const err = lastDisconnect?.error;
+      const statusCode = (err instanceof Boom) ? err.output.statusCode : 'desconhecido';
+      console.log(`🔌 Conexão fechada. Motivo: ${statusCode}`);
+
+      const isLoggedOut = statusCode === DisconnectReason.loggedOut;
+      const isBadSession = statusCode === DisconnectReason.badSession || statusCode === 500;
+
+      if (isLoggedOut || isBadSession) {
+        console.log(`🔑 Sessão inválida (${statusCode}) — limpando credenciais para gerar novo QR...`);
+        limparSessaoWhatsApp();
+        reconnectAttempts = 0;
         if (reconnectTimeout) clearTimeout(reconnectTimeout);
-        reconnectTimeout = setTimeout(() => connectToWhatsApp(), retryDelayMs);
+        reconnectTimeout = setTimeout(() => connectToWhatsApp(), 2000);
+        return;
       }
+
+      if (statusCode === DisconnectReason.restartRequired) {
+        console.log('🔄 Restart required — reconectando...');
+        reconnectAttempts = 0;
+        if (reconnectTimeout) clearTimeout(reconnectTimeout);
+        reconnectTimeout = setTimeout(() => connectToWhatsApp(), 1000);
+        return;
+      }
+
+      reconnectAttempts += 1;
+      const retryDelayMs = Math.min(3000 * reconnectAttempts, 15000);
+      console.log(`🔄 Tentando reconectar em ${Math.round(retryDelayMs / 1000)}s...`);
+      if (reconnectTimeout) clearTimeout(reconnectTimeout);
+      reconnectTimeout = setTimeout(() => connectToWhatsApp(), retryDelayMs);
+
     } else if (connection === 'open') {
       reconnectAttempts = 0;
       if (reconnectTimeout) { clearTimeout(reconnectTimeout); reconnectTimeout = null; }
@@ -393,7 +376,6 @@ async function connectToWhatsApp() {
         const hasWhats = fs.existsSync(WHATS_TXT_PATH) || fs.existsSync(WHATS_CSV_PATH);
         const whatsPath = fs.existsSync(WHATS_TXT_PATH) ? WHATS_TXT_PATH : WHATS_CSV_PATH;
         const hasImperium = fs.existsSync(IMPERIUM_XLSX_PATH);
-
         if (!hasWhats || !hasImperium) {
           const faltantes = [];
           if (!hasWhats) faltantes.push('• Arquivo Whats (.txt ou .csv)');
@@ -401,34 +383,21 @@ async function connectToWhatsApp() {
           await sock.sendMessage(chatId, { text: `⚠️ Faltam arquivos para comparar:\n\n${faltantes.join('\n')}\n\nEnvie os dois documentos (.txt/.csv e .xlsx).` }, { quoted: m });
           return;
         }
-
         try {
           const resultado = compare430({ whatsPath, imperiumXlsxPath: IMPERIUM_XLSX_PATH, timeZone: 'America/Sao_Paulo' });
-
-          if (resultado.totalWhats430 === 0) {
-            await sock.sendMessage(chatId, { text: 'ℹ️ Não encontrei mensagens com *430/FR* no arquivo Whats informado.' }, { quoted: m });
-            return;
-          }
-
+          if (resultado.totalWhats430 === 0) { await sock.sendMessage(chatId, { text: 'ℹ️ Não encontrei mensagens com *430/FR* no arquivo Whats informado.' }, { quoted: m }); return; }
           const blocos = [];
           blocos.push(`📊 Contratos únicos 430/FR no Whats: *${resultado.totalContratosWhats430 || resultado.totalWhats430}*`);
-
           if (resultado.relatorio) {
             blocos.push(`\n${resultado.relatorio}`);
           } else {
-            if (resultado.divergencias.length > 0) {
-              blocos.push(`\n❌ *DIVERGÊNCIAS*\n${formatForCopy(resultado.divergencias)}`);
-            } else {
-              blocos.push('\n✅ Nenhuma divergência de técnico encontrada para os 430/FR.');
-            }
+            if (resultado.divergencias.length > 0) blocos.push(`\n❌ *DIVERGÊNCIAS*\n${formatForCopy(resultado.divergencias)}`);
+            else blocos.push('\n✅ Nenhuma divergência de técnico encontrada para os 430/FR.');
             if (resultado.naoEncontrados.length > 0) {
-              const listaNaoEncontrados = resultado.naoEncontrados
-                .map((n) => typeof n === 'object' ? `${n.contrato} - ${n.tecnicoWhats}` : String(n))
-                .join('\n');
+              const listaNaoEncontrados = resultado.naoEncontrados.map((n) => typeof n === 'object' ? `${n.contrato} - ${n.tecnicoWhats}` : String(n)).join('\n');
               blocos.push(`\n⚠️ *CONTRATOS 430/FR NÃO ENCONTRADOS NO XLSX (DESC + hoje)*\n${listaNaoEncontrados}`);
             }
           }
-
           const respostaFinal = blocos.join('\n');
           const TAMANHO_MAX = 3500;
           if (respostaFinal.length <= TAMANHO_MAX) {
@@ -443,16 +412,13 @@ async function connectToWhatsApp() {
             }
             if (atual) partes.push(atual);
             for (let i = 0; i < partes.length; i++) {
-              const prefixo = i === 0 ? '' : `(continuação ${i + 1}/${partes.length})\n`;
-              await sock.sendMessage(chatId, { text: `${prefixo}${partes[i]}` }, { quoted: m });
+              await sock.sendMessage(chatId, { text: `${i === 0 ? '' : `(continuação ${i + 1}/${partes.length})\n`}${partes[i]}` }, { quoted: m });
             }
           }
         } catch (err) {
           console.error('Erro comparar430:', err);
           await sock.sendMessage(chatId, { text: `❌ Erro ao comparar 430: ${err.message}` }, { quoted: m });
-        } finally {
-          limparArquivosComparacao430();
-        }
+        } finally { limparArquivosComparacao430(); }
       };
 
       // ==================== COMANDO !MENU ====================
@@ -484,8 +450,8 @@ async function connectToWhatsApp() {
 • Ao receber 1x .txt/.csv + 1x .xlsx, o bot compara automático
 
 🔍 *CONSULTA*
-• Digite "contato 12345", "cct 12345", "ctt 12345" ou "12345 ctt"
-• Grupo Controladores: "contatos 1234567" (consulta TOA primeiro + auto-pesquisa)
+• "contatos 1234567" — busca no TOA (auto-pesquisa)
+• "contato 12345", "cct 12345", "ctt 12345" — busca na planilha
 • !toastatus - Status do cache TOA
 `;
         await sock.sendMessage(chatId, { text: menu }, { quoted: m });
@@ -522,14 +488,13 @@ async function connectToWhatsApp() {
               const xlsxEntry = entries.find((e) => e.entryName.toLowerCase().endsWith('.xlsx'));
               const whatsEntry = entries.find((e) => { const n = e.entryName.toLowerCase(); return n.endsWith('.txt') || n.endsWith('.csv'); });
               if (xlsxEntry) { fs.writeFileSync(IMPERIUM_XLSX_PATH, xlsxEntry.getData()); salvouAlgum = true; }
-              if (whatsEntry) { const lower = whatsEntry.entryName.toLowerCase(); const destino = lower.endsWith('.csv') ? WHATS_CSV_PATH : WHATS_TXT_PATH; fs.writeFileSync(destino, whatsEntry.getData()); salvouAlgum = true; }
+              if (whatsEntry) { const lower = whatsEntry.entryName.toLowerCase(); fs.writeFileSync(lower.endsWith('.csv') ? WHATS_CSV_PATH : WHATS_TXT_PATH, whatsEntry.getData()); salvouAlgum = true; }
               if (!salvouAlgum) { await sock.sendMessage(chatId, { text: '⚠️ ZIP recebido, mas não encontrei .xlsx e/ou .txt/.csv dentro dele.' }, { quoted: m }); return; }
               await sock.sendMessage(chatId, { text: '✅ ZIP processado. Arquivos internos salvos para comparação 430.' }, { quoted: m });
             } catch (zipErr) { await sock.sendMessage(chatId, { text: `❌ Erro ao ler ZIP: ${zipErr.message}` }, { quoted: m }); return; }
           } else if (isTxtOrCsv || legendaMarcaWhats) {
-            const destino = originalName.endsWith('.csv') ? WHATS_CSV_PATH : WHATS_TXT_PATH;
-            fs.writeFileSync(destino, fileBuffer); salvouAlgum = true;
-            await sock.sendMessage(chatId, { text: `✅ Arquivo Whats salvo em: ${path.basename(destino)}` }, { quoted: m });
+            fs.writeFileSync(originalName.endsWith('.csv') ? WHATS_CSV_PATH : WHATS_TXT_PATH, fileBuffer); salvouAlgum = true;
+            await sock.sendMessage(chatId, { text: `✅ Arquivo Whats salvo em: ${path.basename(originalName.endsWith('.csv') ? WHATS_CSV_PATH : WHATS_TXT_PATH)}` }, { quoted: m });
           } else if (isXlsx || legendaMarcaImperium) {
             fs.writeFileSync(IMPERIUM_XLSX_PATH, fileBuffer); salvouAlgum = true;
             await sock.sendMessage(chatId, { text: '✅ Arquivo Imperium salvo em: imperium.xlsx' }, { quoted: m });
@@ -560,12 +525,10 @@ async function connectToWhatsApp() {
         const contexto = esperaConfirmacaoURA.get(chatId);
         if (msgTextoSemAcento === 'sim') {
           await exibirDadosContrato(chatId, contexto.dados, contexto.contrato, m);
-          esperaConfirmacaoURA.delete(chatId);
-          return; 
+          esperaConfirmacaoURA.delete(chatId); return; 
         } else if (msgTextoSemAcento === 'nao' || msgTextoSemAcento === 'não') {
           await sock.sendMessage(chatId, { text: '⚠️ Por favor valide na URA antes de pegar o contato.' }, { quoted: m });
-          esperaConfirmacaoURA.delete(chatId);
-          return;
+          esperaConfirmacaoURA.delete(chatId); return;
         }
       }
 
@@ -581,8 +544,7 @@ async function connectToWhatsApp() {
         selecionados.forEach(r => CONTRATOS_USADOS.add(r.contrato));
         Data.salvarForaRotaUsados(Array.from(CONTRATOS_USADOS));
         for (let item of selecionados) {
-          let msgIndividual = `⭕ FORA ROTA ⭕\n\nCONTRATO: ${item.contrato}\nNOME: ${item.cliente}\nEND: ${item.endereco}\nTEL: ${item.telefone}\nTECNICO: ${tecnico}`;
-          await sock.sendMessage(chatId, { text: msgIndividual });
+          await sock.sendMessage(chatId, { text: `⭕ FORA ROTA ⭕\n\nCONTRATO: ${item.contrato}\nNOME: ${item.cliente}\nEND: ${item.endereco}\nTEL: ${item.telefone}\nTECNICO: ${tecnico}` });
           await new Promise(r => setTimeout(r, 800));
         }
         return;
@@ -590,26 +552,22 @@ async function connectToWhatsApp() {
 
       // ==================== [PRIORIDADE 2] !FORAROTA-RAW ====================
       if (msgTexto.startsWith('!forarota-raw ')) {
-        const content = msgTextoRaw.slice(14); 
+        const content = msgTextoRaw.slice(14);
         const primeiroVirgula = content.indexOf(',');
         if (primeiroVirgula === -1) return;
         const tecnico = content.substring(0, primeiroVirgula).trim();
         const textoBruto = content.substring(primeiroVirgula + 1).trim();
-        const regexContrato = /(\d{7,})([A-Z\s\.]+)/g;
-        let matchRaw;
-        let resultados = [];
+        const regexContrato = /(\d{7,})([A-Z\s.]+)/g;
+        let matchRaw, resultados = [];
         while ((matchRaw = regexContrato.exec(textoBruto)) !== null) {
-          let contrato = matchRaw[1];
-          let resto = matchRaw[2];
-          let telefoneMatch = resto.match(/(859\d{8})/);
-          let telefone = telefoneMatch ? telefoneMatch[0] : 'N/D';
-          let nomeEnd = resto.replace(telefone, '').trim();
-          resultados.push({ contrato, info: nomeEnd, telefone });
+          const contrato = matchRaw[1], resto = matchRaw[2];
+          const telefoneMatch = resto.match(/(859\d{8})/);
+          const telefone = telefoneMatch ? telefoneMatch[0] : 'N/D';
+          resultados.push({ contrato, info: resto.replace(telefone, '').trim(), telefone });
         }
         if (resultados.length === 0) { await sock.sendMessage(chatId, { text: '⚠️ Não identifiquei dados no texto.' }, { quoted: m }); return; }
         for (let item of resultados) {
-          let msgIndividual = `⭕ FORA ROTA ⭕\n\nCONTRATO: ${item.contrato}\nDADOS: ${item.info}\nTEL: ${item.telefone}\nTECNICO: ${tecnico}`;
-          await sock.sendMessage(chatId, { text: msgIndividual });
+          await sock.sendMessage(chatId, { text: `⭕ FORA ROTA ⭕\n\nCONTRATO: ${item.contrato}\nDADOS: ${item.info}\nTEL: ${item.telefone}\nTECNICO: ${tecnico}` });
           await new Promise(r => setTimeout(r, 800));
         }
         return;
@@ -621,75 +579,58 @@ async function connectToWhatsApp() {
           const inferirModeloPorSerial = (serial) => {
             const base = String(serial || '').toUpperCase().replace(/\W/g, '');
             if (!base) return 'DECODER';
-            const temLetra = /[A-Z]/.test(base);
-            const temNumero = /\d/.test(base);
-            if (temLetra && temNumero) return 'EMTA';
+            if (/[A-Z]/.test(base) && /\d/.test(base)) return 'EMTA';
             if (/^\d+$/.test(base)) return 'DECODER';
             return 'DECODER';
           };
-
           const extrairValor = (chave) => {
             const chaveClean = chave.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            const linhas = msgTextoRaw.split('\n');
-            const linha = linhas.find(l => l.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(chaveClean));
+            const linha = msgTextoRaw.split('\n').find(l => l.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(chaveClean));
             if (linha) { const partes = linha.split(':'); if (partes.length > 1) return partes.slice(1).join(':').trim(); }
             return '';
           };
-
           const data = extrairValor('Data');
           const contrato = extrairValor('Contrato');
           const nomeCliente = extrairValor('Nome do cliente');
           const tecnico = (extrairValor('Nome do Técnico') || extrairValor('Tecnico')).replace(/^\.\s*/, '');
           let rawEquips = extrairValor('Equipamentos') || extrairValor('Numero serial') || extrairValor('Número serial');
           const modeloEquipamentoInformado = (extrairValor('Modelo equipamento') || extrairValor('Modelo Equipamento') || '').toUpperCase();
-
           if (!contrato || !rawEquips) { await sock.sendMessage(chatId, { text: '⚠️ Faltou o Contrato ou os Equipamentos.' }, { quoted: m }); return; }
-
           const palavrasChave = ['EMTA', 'DECODE', 'SMART', 'MASH', 'HGU', 'ONT', 'DECODER'];
           const equipamentosBrutos = rawEquips.split(',').map(item => item.trim()).filter(Boolean);
           const hintSmartGlobal = /\bSMART\b/.test(modeloEquipamentoInformado) || /\bSMART\b/.test(msgTextoSemAcento.toUpperCase());
           const hintDecoderGlobal = /DECO|DECODER/.test(modeloEquipamentoInformado) || /DECO|DECODER/.test(msgTextoSemAcento.toUpperCase());
-
           const smartHintIndex = (() => {
             if (!hintSmartGlobal) return -1;
             const candidatos = [];
             equipamentosBrutos.forEach((item, idx) => {
               const limpo = item.toUpperCase().replace(/^\*+\s*/, '');
-              const explicito = palavrasChave.some((p) => limpo.startsWith(p)) || limpo.includes(':');
-              if (!explicito && /^\d+$/.test(limpo)) candidatos.push(idx);
+              if (!palavrasChave.some((p) => limpo.startsWith(p)) && !limpo.includes(':') && /^\d+$/.test(limpo)) candidatos.push(idx);
             });
-            if (!candidatos.length) return -1;
-            return candidatos[candidatos.length - 1];
+            return candidatos.length ? candidatos[candidatos.length - 1] : -1;
           })();
-
           const listaEquipamentosProcessada = equipamentosBrutos.map((item, idx) => {
             let itemLimpo = item.trim().toUpperCase();
             const smartForcado = itemLimpo.startsWith('*');
             if (smartForcado) itemLimpo = itemLimpo.replace(/^\*+\s*/, '');
             for (const modelo of palavrasChave) {
               if (itemLimpo.startsWith(modelo)) {
-                let serialSobra = itemLimpo.substring(modelo.length).replace(/^[:;\s-]+/, '').trim().replace(/^\*+\s*/, '');
+                const serialSobra = itemLimpo.substring(modelo.length).replace(/^[:;\s-]+/, '').trim().replace(/^\*+\s*/, '');
                 if (!serialSobra) return null;
-                if (smartForcado) return { modelo: 'SMART', serial: serialSobra };
-                return { modelo: modelo === 'DECODE' ? 'DECODER' : modelo, serial: serialSobra };
+                return { modelo: smartForcado ? 'SMART' : (modelo === 'DECODE' ? 'DECODER' : modelo), serial: serialSobra };
               }
             }
             if (itemLimpo.includes(':')) {
               const parts = itemLimpo.split(':');
               const modeloDeclarado = parts[0].trim().toUpperCase();
               const serialDeclarado = parts.slice(1).join(':').trim().replace(/^\*+\s*/, '');
-              const modeloNormalizado = smartForcado ? 'SMART' : (['EMTA', 'SMART', 'DECODER'].includes(modeloDeclarado) ? modeloDeclarado : inferirModeloPorSerial(serialDeclarado));
-              return { modelo: modeloNormalizado, serial: serialDeclarado };
+              return { modelo: smartForcado ? 'SMART' : (['EMTA', 'SMART', 'DECODER'].includes(modeloDeclarado) ? modeloDeclarado : inferirModeloPorSerial(serialDeclarado)), serial: serialDeclarado };
             }
             const serialFinal = itemLimpo.replace(/^\*+\s*/, '');
-            const smartPorTexto = itemLimpo.includes('SMART');
             const smartPorHint = idx === smartHintIndex || (hintSmartGlobal && !hintDecoderGlobal && /^\d+$/.test(serialFinal));
-            const modeloFinal = (smartForcado || smartPorTexto || smartPorHint) ? 'SMART' : inferirModeloPorSerial(serialFinal);
-            return { modelo: modeloFinal, serial: serialFinal };
+            return { modelo: (smartForcado || itemLimpo.includes('SMART') || smartPorHint) ? 'SMART' : inferirModeloPorSerial(serialFinal), serial: serialFinal };
           }).filter(i => i && i.serial);
-
           if (listaEquipamentosProcessada.length === 0) { await sock.sendMessage(chatId, { text: '⚠️ Nenhum serial válido.' }, { quoted: m }); return; }
-
           await sock.sendMessage(chatId, { react: { text: '⏳', key: m.key } });
           const bufferImagem = await gerarComprovanteDevolucao({ data, contrato, nomeCliente, equipamentos: listaEquipamentosProcessada, tecnico });
           await sock.sendMessage(chatId, { image: bufferImagem, caption: `✅ Comprovante Gerado.\nCliente: ${nomeCliente}` }, { quoted: m });
@@ -701,27 +642,14 @@ async function connectToWhatsApp() {
       // ==================== [PRIORIDADE 4] ADMIN/PONTO/OCR ====================
       if (isGrupo && msgTexto === '!marcar') { await enviarMensagemComMarcacaoGeral(chatId, "⚠️ *TESTE DE MARCAÇÃO GERAL*"); return; }
       if (msgTexto === '!id') { await sock.sendMessage(chatId, { text: `🆔 Chat: ${chatId}\n👤 User: ${usuarioId}` }, { quoted: m }); return; }
-      if (msgTexto === '!controlador') { if (!isGrupoControladoresPonto) return; const relatorio = gerarRelatorioDia(); await sock.sendMessage(chatId, { text: relatorio }, { quoted: m }); return; }
+      if (msgTexto === '!controlador') { if (!isGrupoControladoresPonto) return; await sock.sendMessage(chatId, { text: gerarRelatorioDia() }, { quoted: m }); return; }
       if (msgTexto === '!planilha') { if (!isGrupoControladoresPonto) return; const csv = gerarRelatorioCSV(); await sock.sendMessage(chatId, { text: `📋 *HORÁRIOS DO DIA*\n\n_Copie o bloco abaixo:_\n\n\`\`\`${csv}\`\`\`` }, { quoted: m }); return; }
-
-      if (msgTexto === '!ligarplanilha') {
-        if (!GRUPOS_CONTATOS_TOA.has(chatId)) return;
-        PLANILHA_ATIVA = true;
-        await sock.sendMessage(chatId, { text: '✅ Fallback da planilha *ativado*.' }, { quoted: m });
-        return;
-      }
-      if (msgTexto === '!desligarplanilha') {
-        if (!GRUPOS_CONTATOS_TOA.has(chatId)) return;
-        PLANILHA_ATIVA = false;
-        await sock.sendMessage(chatId, { text: '⛔ Fallback da planilha *desativado*.' }, { quoted: m });
-        return;
-      }
+      if (msgTexto === '!ligarplanilha') { if (!GRUPOS_CONTATOS_TOA.has(chatId)) return; PLANILHA_ATIVA = true; await sock.sendMessage(chatId, { text: '✅ Fallback da planilha *ativado*.' }, { quoted: m }); return; }
+      if (msgTexto === '!desligarplanilha') { if (!GRUPOS_CONTATOS_TOA.has(chatId)) return; PLANILHA_ATIVA = false; await sock.sendMessage(chatId, { text: '⛔ Fallback da planilha *desativado*.' }, { quoted: m }); return; }
       if (msgTexto === '!toastatus') {
         if (!GRUPOS_CONTATOS_TOA.has(chatId)) return;
         const stats = toaBridge.stats();
-        await sock.sendMessage(chatId, {
-          text: `🌐 *TOA Bridge* [${BOT_BUILD}]\nContratos: *${stats.contracts}*\nTelefones: *${stats.phones}*\nPorta: *${stats.port}*\nPendentes lookup: *${stats.pendingLookups || 0}*`
-        }, { quoted: m });
+        await sock.sendMessage(chatId, { text: `🌐 *TOA Bridge* [${BOT_BUILD}]\nContratos: *${stats.contracts}*\nTelefones: *${stats.phones}*\nPorta: *${stats.port}*\nPendentes: *${stats.pendingLookups || 0}*` }, { quoted: m });
         return;
       }
 
@@ -735,10 +663,7 @@ async function connectToWhatsApp() {
         if (isImage) {
           buffer = await downloadMediaMessage(m, 'buffer', {}, { logger: pino({ level: 'silent' }), reuploadRequest: sock.updateMediaMessage });
         } else if (isQuotedImage) {
-          const msgCitada = {
-            message: m.message.extendedTextMessage.contextInfo.quotedMessage,
-            key: { id: m.message.extendedTextMessage.contextInfo.stanzaId, remoteJid: chatId, participant: m.message.extendedTextMessage.contextInfo.participant }
-          };
+          const msgCitada = { message: m.message.extendedTextMessage.contextInfo.quotedMessage, key: { id: m.message.extendedTextMessage.contextInfo.stanzaId, remoteJid: chatId, participant: m.message.extendedTextMessage.contextInfo.participant } };
           buffer = await downloadMediaMessage(msgCitada, 'buffer', {}, { logger: pino({ level: 'silent' }), reuploadRequest: sock.updateMediaMessage });
         }
         if (buffer) {
@@ -758,15 +683,12 @@ async function connectToWhatsApp() {
       }
 
       // ==================== [PRIORIDADE 5A] CONTATOS TOA (3 GRUPOS) ====================
-      const matchControladores = msgTexto.match(
-        /(?:contatos|conttatos|contats)\D*(\d{6,9})|(\d{6,9})\D*(?:contatos|conttatos|contats)/i
-      );
+      const matchControladores = msgTexto.match(/(?:contrato s?|contatos|conttatos|contats|ctt|cct)\D*(\d{6,9})|(\d{6,9})\D*(?:contrato s?|contatos|conttatos|contats|ctt|cct)/i);
 
       if (GRUPOS_CONTATOS_TOA.has(chatId) && matchControladores) {
         const termo = matchControladores[1] || matchControladores[2];
         TOA_LOG.info(`busca disparada — grupo=${chatId} contrato=${termo} build=${BOT_BUILD}`);
 
-        // 1. Cache imediato (<500ms)
         const achadoCache = await toaBridgeLookupWithTimeout(termo, 500);
         if (achadoCache) {
           TOA_LOG.info(`cache hit — contrato=${termo} telefones=${achadoCache.telefones.length}`);
@@ -774,23 +696,16 @@ async function connectToWhatsApp() {
           return;
         }
 
-        // 2. Cache miss — enfileira auto-lookup silencioso (sem mensagem pro usuário)
         TOA_LOG.warn(`cache miss — contrato=${termo}; enfileirando auto-lookup`);
         const lookupQueued = toaBridge.queueLookup(termo);
         TOA_LOG.info(`queue-lookup contrato=${termo} queued=${lookupQueued}`);
 
-        // Python lookup em background (só log no terminal)
         runPythonToaLookup(termo)
-          .then((py) => {
-            TOA_LOG.info(`python lookup ${py.ok ? '✅' : '⚠️'} contrato=${termo} code=${py.code ?? 'n/a'}`);
-            if (py.stdout) TOA_LOG.info(`py: ${py.stdout}`);
-          })
+          .then((py) => { TOA_LOG.info(`python lookup ${py.ok ? '✅' : '⚠️'} contrato=${termo} code=${py.code ?? 'n/a'}`); })
           .catch((err) => TOA_LOG.error(`python erro: ${err.message}`));
 
-        // 3. Polling não-bloqueante — responde quando a extensão enviar (sem msg de espera)
         iniciarPollingEResponder({ chatId, termo, message: m, timeoutMs: 25000, intervalMs: 2000 });
 
-        // 4. Fallback planilha — só se PLANILHA_ATIVA
         if (PLANILHA_ATIVA) {
           if (CACHE_CONTRATOS.length === 0) await atualizarCache();
           const achadoPlanilha = CACHE_CONTRATOS.find(r => r['Contrato'] === termo);
@@ -798,9 +713,7 @@ async function connectToWhatsApp() {
             TOA_LOG.info(`fallback planilha encontrou contrato=${termo}`);
             if (precisaValidarURA(chatId)) {
               esperaConfirmacaoURA.set(chatId, { contrato: termo, dados: achadoPlanilha });
-              await sock.sendMessage(chatId, {
-                text: `📄 *Contrato:* ${termo}\n\nJá confirmou com a URA?\n\n_Responda apenas *Sim* ou *Não*_`
-              }, { quoted: m });
+              await sock.sendMessage(chatId, { text: `📄 *Contrato:* ${termo}\n\nJá confirmou com a URA?\n\n_Responda apenas *Sim* ou *Não*_` }, { quoted: m });
             } else {
               await exibirDadosContrato(chatId, achadoPlanilha, termo, m);
             }
@@ -815,13 +728,10 @@ async function connectToWhatsApp() {
       if (match && GRUPOS_CONTATOS_TOA.has(chatId)) {
         const termo = match[1] || match[2];
         console.log(`🔍 [${BOT_BUILD}] busca contrato autorizada em ${chatId}: ${termo}`);
-
         if (CACHE_CONTRATOS.length === 0) {
           await sock.sendMessage(chatId, { text: `⚠️ Estou atualizando a base de dados agora, tente novamente em 1 minuto.` }, { quoted: m });
-          await atualizarCache(); 
-          return;
+          await atualizarCache(); return;
         }
-
         const achado = CACHE_CONTRATOS.find(r => r['Contrato'] === termo);
         if (achado) {
           if (precisaValidarURA(chatId)) {
@@ -840,3 +750,5 @@ async function connectToWhatsApp() {
   });
   return sock;
 }
+
+connectToWhatsApp();
